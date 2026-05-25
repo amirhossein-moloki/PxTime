@@ -959,7 +959,6 @@ model StaffAnalytics {
   updatedAt DateTime @updatedAt
 
   @@id([gamingCenterId, staffId, date])
-  @@index([gamingCenterId, staffId, date])
 }
 
 model StationAnalytics {
@@ -977,7 +976,6 @@ model StationAnalytics {
   updatedAt DateTime @updatedAt
 
   @@id([gamingCenterId, stationId, date])
-  @@index([gamingCenterId, stationId, date])
 }
 
 // =====================================================
