@@ -21,15 +21,15 @@ export const CustomerPanelService = {
     const { page = 1, pageSize = 10, status, gamingCenterId } = query;
     const skip = (page - 1) * pageSize;
 
-    const where: Prisma.BookingWhereInput = {
+    const where: Prisma.ReservationWhereInput = {
       customerAccountId,
       status,
       gamingCenterId,
     };
 
     const [reservations, totalItems] = await Promise.all([
-      CustomerPanelRepo.findManyBookings(where, skip, pageSize),
-      CustomerPanelRepo.countBookings(where),
+      CustomerPanelRepo.findManyReservations(where, skip, pageSize),
+      CustomerPanelRepo.countReservations(where),
     ]);
 
     return {
@@ -44,7 +44,7 @@ export const CustomerPanelService = {
   },
 
   async getBookingDetails(reservationId: string, customerAccountId: string) {
-    const reservation = await CustomerPanelRepo.findBookingById(reservationId, customerAccountId);
+    const reservation = await CustomerPanelRepo.findReservationById(reservationId, customerAccountId);
     if (!reservation) {
       throw new AppError('Reservation not found', httpStatus.NOT_FOUND);
     }
@@ -57,7 +57,7 @@ export const CustomerPanelService = {
     reason?: string,
     context?: { ip?: string; userAgent?: string }
   ) {
-    const reservation = await CustomerPanelRepo.findBookingById(reservationId, customerAccountId);
+    const reservation = await CustomerPanelRepo.findReservationById(reservationId, customerAccountId);
     if (!reservation) {
       throw new AppError('Reservation not found', httpStatus.NOT_FOUND);
     }
@@ -67,7 +67,7 @@ export const CustomerPanelService = {
     }
 
     const updatedBooking = await CustomerPanelRepo.transaction(async (tx) => {
-      const result = await CustomerPanelRepo.updateBooking(reservationId, {
+      const result = await CustomerPanelRepo.updateReservation(reservationId, {
         status: ReservationStatus.CANCELED,
         canceledAt: new Date(),
         cancelReason: reason || 'Canceled by customer',
@@ -98,7 +98,7 @@ export const CustomerPanelService = {
     customerAccountId: string,
     input: CustomerSubmitReviewInput
   ) {
-    const reservation = await CustomerPanelRepo.findBookingById(reservationId, customerAccountId);
+    const reservation = await CustomerPanelRepo.findReservationById(reservationId, customerAccountId);
     if (!reservation) {
       throw new AppError('Reservation not found', httpStatus.NOT_FOUND);
     }

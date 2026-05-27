@@ -21,11 +21,11 @@ export const CustomerPanelRepo = {
     });
   },
 
-  async findManyBookings(
-    where: Prisma.BookingWhereInput,
+  async findManyReservations(
+    where: Prisma.ReservationWhereInput,
     skip: number,
     take: number,
-    orderBy: Prisma.BookingOrderByWithRelationInput = { startTime: 'desc' }
+    orderBy: Prisma.ReservationOrderByWithRelationInput = { startTime: 'desc' }
   ) {
     return prisma.reservation.findMany({
       where,
@@ -57,11 +57,11 @@ export const CustomerPanelRepo = {
     });
   },
 
-  async countBookings(where: Prisma.BookingWhereInput) {
+  async countReservations(where: Prisma.ReservationWhereInput) {
     return prisma.reservation.count({ where });
   },
 
-  async findBookingById(id: string, customerAccountId: string) {
+  async findReservationById(id: string, customerAccountId: string) {
     return prisma.reservation.findFirst({
       where: {
         id,
@@ -90,7 +90,7 @@ export const CustomerPanelRepo = {
     });
   },
 
-  async updateBooking(id: string, data: Prisma.BookingUpdateInput, tx?: Prisma.TransactionClient) {
+  async updateReservation(id: string, data: Prisma.ReservationUpdateInput, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
     return client.reservation.update({
       where: { id },

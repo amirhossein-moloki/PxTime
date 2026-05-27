@@ -4,7 +4,7 @@ import { UpdateSiteSettingsInput } from './site-settings.validators';
 
 const sanitizeUpdateData = (
   data: UpdateSiteSettingsInput
-): Prisma.SalonSiteSettingsUncheckedUpdateInput => ({
+): Prisma.SiteSettingsUncheckedUpdateInput => ({
   logoUrl: data.logoUrl,
   faviconUrl: data.faviconUrl,
   defaultSeoTitle: data.defaultSeoTitle,
