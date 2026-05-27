@@ -41,10 +41,8 @@ describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
       data: {
         gamingCenterId: gamingCenter.id,
         name: 'Availability Test GameStation',
-        durationMinutes: 60,
-        price: 100,
-        currency: 'USD',
-        userServices: {
+        hourlyPrice: 100,
+        stationSkills: {
           create: {
             userId: staff.id,
           },
@@ -83,11 +81,12 @@ describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
         createdByUserId: creator.id,
         startTime: new Date(new Date(testDate).setHours(11, 0, 0, 0)),
         endTime: new Date(new Date(testDate).setHours(12, 0, 0, 0)),
-        (stationSnapshot as any): station.name,
-        (stationSnapshot as any): station.durationMinutes,
-        (stationSnapshot as any): station.price,
-        (stationSnapshot as any): station.currency,
-        totalPrice: station.price,
+        stationSnapshot: {
+          name: station.name,
+          hourlyPrice: station.hourlyPrice,
+        },
+        totalHours: 1,
+        totalPrice: station.hourlyPrice,
       }
     });
   });
@@ -97,7 +96,7 @@ describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
     await prisma.$transaction([
       prisma.reservation.deleteMany({ where: { gamingCenterId: gamingCenter.id } }),
       prisma.customerProfile.deleteMany({ where: { gamingCenterId: gamingCenter.id } }),
-      prisma.userService.deleteMany({ where: { stationId: station.id } }),
+      prisma.staffStationSkill.deleteMany({ where: { stationId: station.id } }),
       prisma.staffShift.deleteMany({ where: { gamingCenterId: gamingCenter.id } }),
     ]);
 

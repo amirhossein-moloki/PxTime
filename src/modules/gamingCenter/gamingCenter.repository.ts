@@ -4,10 +4,10 @@ import { Prisma } from '@prisma/client';
 import { ListSalonsQuery } from './gamingCenter.validation';
 import { getPaginationParams, formatPaginatedResult } from '../../common/utils/pagination';
 
-export const salonRepository = {
+export const gamingCenterRepository = {
   async create(data: CreateSalonInput) {
     return prisma.gamingCenter.create({
-      data: data as Prisma.SalonCreateInput,
+      data: data as Prisma.GamingCenterCreateInput,
     });
   },
 
@@ -27,7 +27,7 @@ export const salonRepository = {
     const { page, limit, search, isActive, sortBy, sortOrder, city } = query;
     const { skip, take } = getPaginationParams(page, limit);
 
-    const where: Prisma.SalonWhereInput = {
+    const where: Prisma.GamingCenterWhereInput = {
       isActive: isActive !== undefined ? isActive : true,
     };
 

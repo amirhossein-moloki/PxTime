@@ -27,7 +27,7 @@ export const getAvailableSlots = async (
   const { salonSlug, stationId, staffId, startDate, endDate } = query;
 
   // 1. Fetch GameStation and GamingCenter info
-  const station = await AvailabilityRepo.findServiceWithSalon(stationId, salonSlug);
+  const station = await AvailabilityRepo.findStationWithGamingCenter(stationId, salonSlug);
 
   if (!station) {
     throw new AppError('GameStation not found in this gamingCenter.', httpStatus.NOT_FOUND);
@@ -57,7 +57,7 @@ export const getAvailableSlots = async (
 
   // --- Core Logic: Generate and Filter Slots ---
   const availableSlots: TimeSlot[] = [];
-  const serviceDuration = station.durationMinutes;
+  const serviceDuration = station.defaultDurationHours * 60;
 
   // Create maps for quick lookups
   const shiftsByUserId: { [userId: string]: { [day: number]: any } } = {}; // eslint-disable-line @typescript-eslint/no-explicit-any

@@ -10,7 +10,7 @@ import { getPaginationParams, formatPaginatedResult } from '../../common/utils/p
  * @param data - The data for the new station.
  * @returns The newly created station.
  */
-export async function createService(gamingCenterId: string, data: CreateServiceInput) {
+export async function createStation(gamingCenterId: string, data: CreateServiceInput) {
   const createInput: Prisma.GameStationUncheckedCreateInput = {
     ...(data as any), // eslint-disable-line @typescript-eslint/no-explicit-any
     gamingCenterId,
@@ -26,7 +26,7 @@ export async function createService(gamingCenterId: string, data: CreateServiceI
  * @param gamingCenterId - The ID of the gamingCenter.
  * @returns The station if found, otherwise null.
  */
-export async function findServiceById(stationId: string, gamingCenterId: string) {
+export async function findStationById(stationId: string, gamingCenterId: string) {
   return prisma.gameStation.findFirst({
     where: { id: stationId, gamingCenterId },
   });
@@ -38,7 +38,7 @@ export async function findServiceById(stationId: string, gamingCenterId: string)
  * @param options - Optional filtering criteria (e.g., isActive).
  * @returns A list of stations.
  */
-export async function findServicesBySalonId(gamingCenterId: string, query: ListServicesQuery) {
+export async function findStationsByGamingCenterId(gamingCenterId: string, query: ListServicesQuery) {
   const {
     page,
     limit,
@@ -96,7 +96,7 @@ export async function findServicesBySalonId(gamingCenterId: string, query: ListS
  * @param data - The data to update the station with.
  * @returns The updated station.
  */
-export async function updateService(stationId: string, gamingCenterId: string, data: UpdateServiceInput) {
+export async function updateStation(stationId: string, gamingCenterId: string, data: UpdateServiceInput) {
   // Use updateMany to ensure we are only updating a station belonging to the correct gamingCenter.
   await prisma.gameStation.updateMany({
     where: { id: stationId, gamingCenterId },
@@ -104,7 +104,7 @@ export async function updateService(stationId: string, gamingCenterId: string, d
   });
 
   // Return the updated station record.
-  return findServiceById(stationId, gamingCenterId);
+  return findStationById(stationId, gamingCenterId);
 }
 
 /**
@@ -113,10 +113,10 @@ export async function updateService(stationId: string, gamingCenterId: string, d
  * @param gamingCenterId - The ID of the gamingCenter.
  * @returns The deactivated station.
  */
-export async function deactivateService(stationId: string, gamingCenterId: string) {
+export async function deactivateStation(stationId: string, gamingCenterId: string) {
   await prisma.gameStation.updateMany({
     where: { id: stationId, gamingCenterId },
     data: { isActive: false },
   });
-  return findServiceById(stationId, gamingCenterId);
+  return findStationById(stationId, gamingCenterId);
 }

@@ -22,11 +22,11 @@ import {
 
 
 
-const findAndValidateBooking = async (
+const findAndValidateReservation = async (
   reservationId: string,
   gamingCenterId: string
 ): Promise<Reservation> => {
-  const reservation = await ReservationsRepo.findBookingById(reservationId, gamingCenterId);
+  const reservation = await ReservationsRepo.findReservationById(reservationId, gamingCenterId);
   if (!reservation) {
     throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
   }
@@ -71,7 +71,7 @@ export const bookingsService = {
       const startTime = new Date(startAtString);
 
       // 1. Fetch GameStation and Customer Profile details
-      const station = await ReservationsRepo.findService(stationId, gamingCenterId, true, tx);
+      const station = await ReservationsRepo.findStation(stationId, gamingCenterId, true, tx);
 
       if (!station) {
         throw new AppError('GameStation not found or is not active.', httpStatus.NOT_FOUND);
@@ -92,16 +92,17 @@ export const bookingsService = {
         customer as { fullName: string; phone: string; email?: string }
       );
 
-      const gamingCenter = await ReservationsRepo.findSalonWithSettings(gamingCenterId, tx);
+      const gamingCenter = await ReservationsRepo.findGamingCenterWithSettings(gamingCenterId, tx);
 
       if (!gamingCenter) {
         throw new AppError('GamingCenter not found.', httpStatus.NOT_FOUND);
       }
 
       // 2. Calculate endTime and create reservation
-      const endTime = addMinutes(startTime, station.durationMinutes);
+      const durationHours = station.defaultDurationHours;
+      const endTime = addMinutes(startTime, durationHours * 60);
 
-      const reservation = await ReservationsRepo.createBooking({
+      const reservation = await ReservationsRepo.createReservation({
         gamingCenterId,
         stationId,
         staffId,
@@ -112,12 +113,13 @@ export const bookingsService = {
         endTime,
         note,
         status: ReservationStatus.CONFIRMED,
-        // Snapshots
-        (stationSnapshot as any): station.name,
-        (stationSnapshot as any): station.durationMinutes,
-        (stationSnapshot as any): station.price,
-        (stationSnapshot as any): station.currency,
-        totalPrice: station.price,
+        stationSnapshot: {
+          name: station.name,
+          hourlyPrice: station.hourlyPrice,
+          stationType: station.stationType,
+        },
+        totalHours: durationHours,
+        totalPrice: durationHours * station.hourlyPrice,
       }, tx);
 
       return { reservation, gamingCenter, customerAccount };
@@ -138,7 +140,7 @@ export const bookingsService = {
   async createPublicBooking(salonSlug: string, input: CreatePublicBookingInput) {
     try {
       const result = await ReservationsRepo.transaction(async (tx) => {
-        const gamingCenter = await ReservationsRepo.findSalonBySlugWithSettings(salonSlug, tx);
+        const gamingCenter = await ReservationsRepo.findGamingCenterBySlugWithSettings(salonSlug, tx);
 
         if (!gamingCenter) {
           throw new AppError('GamingCenter not found.', httpStatus.NOT_FOUND);
@@ -157,7 +159,7 @@ export const bookingsService = {
           });
         }
 
-        const station = await ReservationsRepo.findService(input.stationId, gamingCenter.id, true, tx);
+        const station = await ReservationsRepo.findStation(input.stationId, gamingCenter.id, true, tx);
 
         if (!station) {
           throw new AppError('GameStation not found or is not active.', httpStatus.NOT_FOUND);
@@ -172,11 +174,12 @@ export const bookingsService = {
           );
         }
 
-        const endTime = addMinutes(startTime, station.durationMinutes);
+        const durationHours = station.defaultDurationHours;
+        const endTime = addMinutes(startTime, durationHours * 60);
         const timeZone = gamingCenter.settings?.timeZone || 'UTC';
         const zonedStartAt = toZonedTime(startTime, timeZone);
 
-        const staffShift = await ReservationsRepo.findShift(gamingCenter.id, staff.id, zonedStartAt.getDay(), tx);
+        const staffShift = await ReservationsRepo.findStaffShift(gamingCenter.id, staff.id, zonedStartAt.getDay(), tx);
 
         if (!staffShift) {
           throw new AppError('Selected time is not available.', httpStatus.CONFLICT, {
@@ -193,7 +196,7 @@ export const bookingsService = {
           });
         }
 
-        const overlappingBooking = await ReservationsRepo.findOverlappingBooking(gamingCenter.id, staff.id, startTime, endTime, undefined, tx);
+        const overlappingBooking = await ReservationsRepo.findOverlappingReservation(gamingCenter.id, staff.id, startTime, endTime, undefined, tx);
 
         if (overlappingBooking) {
           throw new AppError('Selected time is not available.', httpStatus.CONFLICT, {
@@ -211,7 +214,7 @@ export const bookingsService = {
           ? ReservationStatus.CONFIRMED
           : ReservationStatus.PENDING;
 
-        const reservation = await ReservationsRepo.createBooking({
+        const reservation = await ReservationsRepo.createReservation({
           gamingCenterId: gamingCenter.id,
           stationId: station.id,
           staffId: staff.id,
@@ -223,11 +226,13 @@ export const bookingsService = {
           note: input.note,
           status,
           source: ReservationSource.ONLINE,
-          (stationSnapshot as any): station.name,
-          (stationSnapshot as any): station.durationMinutes,
-          (stationSnapshot as any): station.price,
-          (stationSnapshot as any): station.currency,
-          totalPrice: station.price,
+          stationSnapshot: {
+            name: station.name,
+            hourlyPrice: station.hourlyPrice,
+            stationType: station.stationType,
+          },
+          totalHours: durationHours,
+          totalPrice: durationHours * station.hourlyPrice,
         }, tx);
 
         return { reservation, gamingCenter, customerAccount };
@@ -255,7 +260,7 @@ export const bookingsService = {
 
   async getBookings(gamingCenterId: string, query: ListBookingsQuery, actor: { id: string, role: UserRole }) {
     const { page = 1, pageSize = 20, sortBy = 'startTime', sortOrder = 'asc', status, staffId, customerProfileId, dateFrom, dateTo } = query;
-    const where: Prisma.BookingWhereInput = {
+    const where: Prisma.ReservationWhereInput = {
       gamingCenterId,
       status,
       staffId,
@@ -271,14 +276,14 @@ export const bookingsService = {
     }
 
     const [reservations, totalItems] = await ReservationsRepo.transaction(async (tx) => {
-      const b = await ReservationsRepo.findManyBookings(
+      const b = await ReservationsRepo.findManyReservations(
         where,
         (page - 1) * pageSize,
         pageSize,
         { [sortBy]: sortOrder },
         tx
       );
-      const c = await ReservationsRepo.countBookings(where, tx);
+      const c = await ReservationsRepo.countReservations(where, tx);
       return [b, c] as const;
     });
 
@@ -289,7 +294,7 @@ export const bookingsService = {
   },
 
   async getBookingById(reservationId: string, gamingCenterId: string, actor: { id: string, role: UserRole }) {
-    const reservation = await findAndValidateBooking(reservationId, gamingCenterId);
+    const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (actor.role === 'STAFF' && reservation.staffId !== actor.id) {
       throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
@@ -307,7 +312,7 @@ export const bookingsService = {
   ) {
     try {
       return await ReservationsRepo.transaction(async (tx) => {
-        const reservation = await ReservationsRepo.findBookingById(reservationId, gamingCenterId, tx);
+        const reservation = await ReservationsRepo.findReservationById(reservationId, gamingCenterId, tx);
         if (!reservation) {
           throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
         }
@@ -326,17 +331,17 @@ export const bookingsService = {
         const effectiveServiceId = serviceChanged ? data.stationId! : reservation.stationId;
         const effectiveStaffId = staffChanged ? data.staffId! : reservation.staffId;
 
-        let effectiveService = null;
+        let effectiveStation = null;
         if (serviceChanged) {
-          effectiveService = await ReservationsRepo.findService(effectiveServiceId, gamingCenterId, true, tx);
+          effectiveStation = await ReservationsRepo.findStation(effectiveServiceId, gamingCenterId, true, tx);
 
-          if (!effectiveService) {
+          if (!effectiveStation) {
             throw new AppError('GameStation not found or is not active.', httpStatus.NOT_FOUND);
           }
         } else if (hasTimeChange) {
-          effectiveService = await ReservationsRepo.findService(effectiveServiceId, gamingCenterId, undefined, tx);
+          effectiveStation = await ReservationsRepo.findStation(effectiveServiceId, gamingCenterId, undefined, tx);
 
-          if (!effectiveService) {
+          if (!effectiveStation) {
             throw new AppError('GameStation not found.', httpStatus.NOT_FOUND);
           }
         }
@@ -352,15 +357,18 @@ export const bookingsService = {
           }
         }
 
-        const updateData: Prisma.BookingUncheckedUpdateInput = {};
+        const updateData: Prisma.ReservationUncheckedUpdateInput = {};
 
-        if (serviceChanged && effectiveService) {
+        if (serviceChanged && effectiveStation) {
           updateData.stationId = effectiveServiceId;
-          updateData.(stationSnapshot as any) = effectiveService.name;
-          updateData.(stationSnapshot as any) = effectiveService.durationMinutes;
-          updateData.(stationSnapshot as any) = effectiveService.price;
-          updateData.(stationSnapshot as any) = effectiveService.currency;
-          updateData.totalPrice = effectiveService.price;
+          const durationHours = effectiveStation.defaultDurationHours;
+          updateData.stationSnapshot = {
+            name: effectiveStation.name,
+            hourlyPrice: effectiveStation.hourlyPrice,
+            stationType: effectiveStation.stationType,
+          };
+          updateData.totalHours = durationHours;
+          updateData.totalPrice = durationHours * effectiveStation.hourlyPrice;
         }
 
         if (staffChanged) {
@@ -376,13 +384,13 @@ export const bookingsService = {
           const timeZone = settings?.timeZone || 'UTC';
 
           const newStartAt = data.startTime ? new Date(data.startTime) : reservation.startTime;
-          const serviceDurationMinutes = effectiveService
-            ? effectiveService.durationMinutes
-            : reservation.(stationSnapshot as any);
-          const newEndAt = addMinutes(newStartAt, serviceDurationMinutes);
+          const durationHours = effectiveStation
+            ? effectiveStation.defaultDurationHours
+            : reservation.totalHours;
+          const newEndAt = addMinutes(newStartAt, durationHours * 60);
           const zonedNewStartAt = toZonedTime(newStartAt, timeZone);
 
-          const staffShift = await ReservationsRepo.findShift(gamingCenterId, effectiveStaffId, zonedNewStartAt.getDay(), tx);
+          const staffShift = await ReservationsRepo.findStaffShift(gamingCenterId, effectiveStaffId, zonedNewStartAt.getDay(), tx);
 
           if (!staffShift) {
             throw new AppError('Selected time is not available.', httpStatus.CONFLICT, {
@@ -401,7 +409,7 @@ export const bookingsService = {
 
           const preventOverlaps = settings?.preventOverlaps ?? true;
           if (preventOverlaps) {
-            const overlappingBooking = await ReservationsRepo.findOverlappingBooking(
+            const overlappingBooking = await ReservationsRepo.findOverlappingReservation(
               gamingCenterId,
               effectiveStaffId,
               newStartAt,
@@ -423,10 +431,16 @@ export const bookingsService = {
 
           if (serviceChanged || data.startTime) {
             updateData.endTime = newEndAt;
+            updateData.totalHours = durationHours;
+            // Recalculate totalPrice if station didn't change but startTime did (and we use current snapshot price)
+            if (!serviceChanged) {
+              const snapshot = reservation.stationSnapshot as any;
+              updateData.totalPrice = durationHours * (snapshot?.hourlyPrice || 0);
+            }
           }
         }
 
-        const updatedBooking = await ReservationsRepo.updateBooking(reservationId, updateData, tx);
+        const updatedBooking = await ReservationsRepo.updateReservation(reservationId, updateData, tx);
 
         await auditService.log(
           gamingCenterId,
@@ -459,13 +473,13 @@ export const bookingsService = {
       throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
     }
 
-    const reservation = await findAndValidateBooking(reservationId, gamingCenterId);
+    const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (reservation.status !== ReservationStatus.PENDING) {
       throw new AppError('Invalid state transition: Reservation cannot be confirmed.', httpStatus.CONFLICT);
     }
 
-    const updatedBooking = await ReservationsRepo.updateBookingWithInclude(
+    const updatedBooking = await ReservationsRepo.updateReservationWithInclude(
       reservationId,
       { status: ReservationStatus.CONFIRMED },
       {
@@ -494,14 +508,14 @@ export const bookingsService = {
       throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
     }
 
-    const reservation = await findAndValidateBooking(reservationId, gamingCenterId);
+    const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (!([ReservationStatus.PENDING, ReservationStatus.CONFIRMED] as ReservationStatus[]).includes(reservation.status)) {
       throw new AppError('Invalid state transition: Reservation cannot be canceled.', httpStatus.CONFLICT);
     }
 
     const updatedBooking = await ReservationsRepo.transaction(async (tx) => {
-      const result = await ReservationsRepo.updateBookingWithInclude(
+      const result = await ReservationsRepo.updateReservationWithInclude(
         reservationId,
         {
           status: ReservationStatus.CANCELED,
@@ -550,13 +564,13 @@ export const bookingsService = {
       throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
     }
 
-    const reservation = await findAndValidateBooking(reservationId, gamingCenterId);
+    const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (reservation.status !== ReservationStatus.CONFIRMED) {
       throw new AppError('Invalid state transition: Reservation cannot be completed.', httpStatus.CONFLICT);
     }
 
-    const updatedBooking = await ReservationsRepo.updateBooking(reservationId, {
+    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, {
       status: ReservationStatus.COMPLETED,
       completedAt: new Date(),
     });
@@ -590,13 +604,13 @@ export const bookingsService = {
       throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
     }
 
-    const reservation = await findAndValidateBooking(reservationId, gamingCenterId);
+    const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (reservation.status !== ReservationStatus.CONFIRMED) {
       throw new AppError('Invalid state transition: Reservation cannot be marked as no-show.', httpStatus.CONFLICT);
     }
 
-    const updatedBooking = await ReservationsRepo.updateBooking(reservationId, {
+    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, {
       status: ReservationStatus.NO_SHOW,
       noShowAt: new Date(),
     });

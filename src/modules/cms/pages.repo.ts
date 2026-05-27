@@ -22,7 +22,7 @@ const mapSections = (sections: PageSectionInput[]) =>
 
 export async function createPage(gamingCenterId: string, data: CreatePageData) {
   const { sections, ...pageData } = data;
-  const createInput: Prisma.SalonPageUncheckedCreateInput = {
+  const createInput: Prisma.PageUncheckedCreateInput = {
     ...(pageData as any), // eslint-disable-line @typescript-eslint/no-explicit-any
     gamingCenterId,
     sections: {

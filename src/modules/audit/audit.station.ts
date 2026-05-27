@@ -4,7 +4,7 @@ import { AuditRepo } from './audit.repo';
 
 export interface RecordLogInput {
   gamingCenterId: string;
-  actorId: string;
+  userId: string;
   actorType: SessionActorType;
   action: string;
   entity: string;
@@ -29,7 +29,7 @@ export const auditService = {
   ) {
     return this.recordLog({
       gamingCenterId,
-      actorId: actor.id,
+      userId: actor.id,
       actorType: actor.actorType,
       action,
       entity: entity.name,
@@ -49,8 +49,8 @@ export const auditService = {
     try {
       return await AuditRepo.createLog({
         gamingCenterId: data.gamingCenterId,
-        actorId: data.actorId,
-        actorType: data.actorType,
+        userId: data.userId,
+
         action: data.action,
         entity: data.entity,
         entityId: data.entityId,
@@ -75,9 +75,9 @@ export const auditService = {
     action?: string;
     entity?: string;
     entityId?: string;
-    actorId?: string;
+    userId?: string;
   }) {
-    const { page = 1, pageSize = 20, action, entity, entityId, actorId } = query;
+    const { page = 1, pageSize = 20, action, entity, entityId, userId } = query;
     const skip = (page - 1) * pageSize;
 
     const where = {
@@ -85,7 +85,7 @@ export const auditService = {
       action,
       entity,
       entityId,
-      actorId,
+      userId,
     };
 
     const [logs, totalItems] = await AuditRepo.transaction(async (tx) => {

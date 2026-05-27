@@ -1,7 +1,7 @@
 import { prisma } from '../../config/prisma';
 
 export const AvailabilityRepo = {
-  async findServiceWithSalon(stationId: string, salonSlug: string) {
+  async findStationWithGamingCenter(stationId: string, salonSlug: string) {
     return prisma.gameStation.findFirst({
       where: {
         id: stationId,
@@ -22,7 +22,7 @@ export const AvailabilityRepo = {
       where: {
         id: staffId,
         gamingCenterId,
-        userServices: { some: { stationId } },
+        stationSkills: { some: { stationId } },
       },
     });
   },
@@ -31,7 +31,7 @@ export const AvailabilityRepo = {
     return prisma.user.findMany({
       where: {
         gamingCenterId,
-        userServices: { some: { stationId } },
+        stationSkills: { some: { stationId } },
         isActive: true,
       },
     });

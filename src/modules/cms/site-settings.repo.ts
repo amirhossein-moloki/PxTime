@@ -9,7 +9,7 @@ export async function findSiteSettingsBySalonId(gamingCenterId: string) {
 
 export async function upsertSiteSettings(
   gamingCenterId: string,
-  data: Prisma.SalonSiteSettingsUncheckedUpdateInput
+  data: Prisma.SiteSettingsUncheckedUpdateInput
 ) {
   return prisma.siteSettings.upsert({
     where: { gamingCenterId },
