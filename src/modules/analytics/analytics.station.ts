@@ -40,11 +40,11 @@ export const AnalyticsService = {
     ]);
 
     const performance = staffList.map((staff) => {
-      const stats = staffStats.find((s) => s.staffId === staff.id);
-      const revenue = stats?._sum?.revenue || 0;
-      const completedReservations = stats?._sum?.completedReservations || 0;
-      const totalRating = stats?._sum?.totalRating || 0;
-      const ratingCount = stats?._sum?.ratingCount || 0;
+      const stats = staffStats.find((s) => s.staffId === staff.id) as any;
+      const revenue = stats?.revenue || stats?._sum?.revenue || 0;
+      const completedReservations = stats?.completedReservations || stats?._sum?.completedReservations || 0;
+      const totalRating = stats?.totalRating || stats?._sum?.totalRating || 0;
+      const ratingCount = stats?.ratingCount || stats?._sum?.ratingCount || 0;
 
       return {
         staffId: staff.id,
@@ -65,9 +65,9 @@ export const AnalyticsService = {
     ]);
 
     const performance = servicesList.map((station) => {
-      const stats = serviceStats.find((s) => s.stationId === station.id);
-      const revenue = stats?._sum?.revenue || 0;
-      const completedReservations = stats?._sum?.completedReservations || 0;
+      const stats = serviceStats.find((s) => s.stationId === station.id) as any;
+      const revenue = stats?.revenue || stats?._sum?.revenue || 0;
+      const completedReservations = stats?.completedReservations || stats?._sum?.completedReservations || 0;
 
       return {
         stationId: station.id,

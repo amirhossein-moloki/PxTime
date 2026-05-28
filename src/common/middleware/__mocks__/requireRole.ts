@@ -7,7 +7,8 @@ export const requireRole = (roles: UserRole[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // In our tests, the actor object is manually set.
     // We'll check the role on that object.
-    if (req.actor && roles.includes(req.actor.role)) {
+    const actorRole = (req as any).actor?.role;
+    if (actorRole && roles.includes(actorRole)) {
       next();
     } else {
       next(createHttpError(403, 'Forbidden: You do not have the required permissions.'));
