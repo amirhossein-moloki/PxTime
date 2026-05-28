@@ -72,7 +72,7 @@
 | :--- | :--- | :--- |
 | GET | `/customer/me` | پروفایل مشتری |
 | GET | `/customer/reservations` | سوابق رزرو مشتری |
-| POST | `/customer/reservations/:id/cancel` | لغو رزرو توسط مشتری |
+| POST | `/customer/reservations/:id/cancel` | لغو رزرو توسط خود مشتری |
 | POST | `/customer/reservations/:id/ratings` | ثبت امتیاز و نظر |
 
 ---
@@ -109,6 +109,6 @@
 | متد | مسیر | توضیحات |
 | :--- | :--- | :--- |
 | POST | `/gamingCenters/:id/reservations/:rid/payments/init` | ایجاد تراکنش بانکی |
-| POST | `/webhooks/payments/:provider` | دریافت تأییدیه پرداخت |
+| POST | `/webhooks/payments/:provider` | دریافت تأییدیه‌های پرداخت |
 | GET | `/health` | وضعیت سلامت سرور |
 | GET | `/gamingCenters/:id/audit-logs` | گزارش تغییرات حساس |
