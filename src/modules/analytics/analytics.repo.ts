@@ -10,9 +10,9 @@ export const AnalyticsRepo = {
         date: { gte: startDate, lte: endDate },
       },
       _sum: {
-        totalBookings: true,
-        completedBookings: true,
-        canceledBookings: true,
+        totalReservations: true,
+        completedReservations: true,
+        canceledReservations: true,
         revenue: true,
         realizedCash: true,
       },
@@ -28,7 +28,7 @@ export const AnalyticsRepo = {
         date: { gte: startDate, lte: endDate },
       },
       _sum: {
-        completedBookings: true,
+        completedReservations: true,
         revenue: true,
         totalRating: true,
         ratingCount: true,
@@ -37,14 +37,14 @@ export const AnalyticsRepo = {
   },
 
   async getServicePerformanceStats(gamingCenterId: string, startDate: Date, endDate: Date) {
-    return prisma.gameStationAnalytics.groupBy({
+    return prisma.stationAnalytics.groupBy({
       by: ['stationId'],
       where: {
         gamingCenterId,
         date: { gte: startDate, lte: endDate },
       },
       _sum: {
-        completedBookings: true,
+        completedReservations: true,
         revenue: true,
       },
     });
@@ -123,7 +123,7 @@ export const AnalyticsRepo = {
       }),
     ]);
 
-    const totalBookings = bookingStats.reduce((sum, s) => sum + s._count._all, 0);
+    const totalReservations = bookingStats.reduce((sum, s) => sum + s._count._all, 0);
     const completedStats = bookingStats.find((s) => s.status === 'COMPLETED');
     const canceledStats = bookingStats.find((s) => s.status === 'CANCELED');
 
@@ -132,16 +132,16 @@ export const AnalyticsRepo = {
       create: {
         gamingCenterId,
         date: new Date(dateStr),
-        totalBookings,
-        completedBookings: completedStats?._count._all || 0,
-        canceledBookings: canceledStats?._count._all || 0,
+        totalReservations,
+        completedReservations: completedStats?._count._all || 0,
+        canceledReservations: canceledStats?._count._all || 0,
         revenue: completedStats?._sum.totalPrice || 0,
         realizedCash: realizedCashStats._sum.amount || 0,
       },
       update: {
-        totalBookings,
-        completedBookings: completedStats?._count._all || 0,
-        canceledBookings: canceledStats?._count._all || 0,
+        totalReservations,
+        completedReservations: completedStats?._count._all || 0,
+        canceledReservations: canceledStats?._count._all || 0,
         revenue: completedStats?._sum.totalPrice || 0,
         realizedCash: realizedCashStats._sum.amount || 0,
         updatedAt: new Date(),
@@ -193,13 +193,13 @@ export const AnalyticsRepo = {
         gamingCenterId,
         staffId,
         date: new Date(dateStr),
-        completedBookings: bookingStats._count._all || 0,
+        completedReservations: bookingStats._count._all || 0,
         revenue: bookingStats._sum.totalPrice || 0,
         totalRating: reviewStats._sum.rating || 0,
         ratingCount: reviewStats._count._all || 0,
       },
       update: {
-        completedBookings: bookingStats._count._all || 0,
+        completedReservations: bookingStats._count._all || 0,
         revenue: bookingStats._sum.totalPrice || 0,
         totalRating: reviewStats._sum.rating || 0,
         ratingCount: reviewStats._count._all || 0,
@@ -226,7 +226,7 @@ export const AnalyticsRepo = {
       _sum: { totalPrice: true },
     });
 
-    await prisma.gameStationAnalytics.upsert({
+    await prisma.stationAnalytics.upsert({
       where: {
         gamingCenterId_stationId_date: {
           gamingCenterId,
@@ -238,11 +238,11 @@ export const AnalyticsRepo = {
         gamingCenterId,
         stationId,
         date: new Date(dateStr),
-        completedBookings: stats._count._all || 0,
+        completedReservations: stats._count._all || 0,
         revenue: stats._sum.totalPrice || 0,
       },
       update: {
-        completedBookings: stats._count._all || 0,
+        completedReservations: stats._count._all || 0,
         revenue: stats._sum.totalPrice || 0,
         updatedAt: new Date(),
       },
@@ -255,7 +255,7 @@ export const AnalyticsRepo = {
     });
     if (!reservation) return;
 
-    await this.syncSpecificStats(reservation.gamingCenterId, reservation.startTime, reservation.staffId, reservation.stationId);
+    await this.syncSpecificStats(reservation.gamingCenterId, reservation.startTime, reservation.staffId!, reservation.stationId);
   },
 
   async syncSpecificStats(gamingCenterId: string, date: Date, staffId: string, stationId: string) {
@@ -289,6 +289,6 @@ export const AnalyticsRepo = {
     });
     if (!rating) return;
 
-    await this.syncStaffStats(rating.gamingCenterId, rating.reservation.staffId, rating.reservation.startTime);
+    await this.syncStaffStats(rating.gamingCenterId, rating.reservation.staffId!, rating.reservation.startTime);
   },
 };

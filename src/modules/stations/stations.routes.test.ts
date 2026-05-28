@@ -1,20 +1,19 @@
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { User, GamingCenter } from '@prisma/client';
-import jwt from 'jsonwebtoken';
-import { env } from '../../config/env';
+import { User, GamingCenter, GameStationType } from '@prisma/client';
+import { generateToken } from '../../common/utils/test-utils';
 
-describe('Services API E2E Tests', () => {
-  let testSalon: GamingCenter;
+describe('Stations API E2E Tests', () => {
+  let testGamingCenter: GamingCenter;
   let testManager: User;
   let managerToken: string;
 
   beforeAll(async () => {
     // Create a gamingCenter for the tests
-    testSalon = await prisma.gamingCenter.create({
+    testGamingCenter = await prisma.gamingCenter.create({
       data: {
-        name: 'Test GamingCenter for E2E Services',
+        name: 'Test GamingCenter for E2E Stations',
         slug: `test-gamingCenter-e2e-stations-${Date.now()}`,
       },
     });
@@ -25,16 +24,14 @@ describe('Services API E2E Tests', () => {
         fullName: 'Test Manager',
         phone: `+989121111111${Date.now()}`.slice(0, 14),
         role: 'MANAGER',
-        gamingCenterId: testSalon.id,
+        gamingCenterId: testGamingCenter.id,
       },
     });
 
-    // Generate a JWT for the manager with the correct payload structure
-    managerToken = jwt.sign(
-      { actorId: testManager.id, actorType: 'USER', gamingCenterId: testSalon.id, role: testManager.role },
-      env.JWT_ACCESS_SECRET,
-      { expiresIn: '1h' }
-    );
+    managerToken = generateToken({
+        actorId: testManager.id,
+        actorType: 'USER',
+    });
   });
 
   afterAll(async () => {
@@ -47,31 +44,33 @@ describe('Services API E2E Tests', () => {
 
   describe('POST /api/v1/gamingCenters/:gamingCenterId/stations', () => {
     it('should create a new station when authenticated as a MANAGER', async () => {
-      const serviceData = {
+      const stationData = {
         name: 'E2E Test GameStation',
-        durationMinutes: 60,
-        price: 120000,
-        currency: 'IRR',
+        stationType: GameStationType.PC,
+        hourlyPrice: 120000,
+        minRentHours: 1,
+        maxRentHours: 8,
+        defaultDurationHours: 1,
+        incrementMinutes: 30,
       };
 
       const response = await request(app)
-        .post(`/api/v1/gamingCenters/${testSalon.id}/stations`)
+        .post(`/api/v1/gamingCenters/${testGamingCenter.id}/stations`)
         .set('Authorization', `Bearer ${managerToken}`)
-        .send(serviceData);
+        .send(stationData);
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
       expect(response.body.data.id).toBeDefined();
-      expect(response.body.data.name).toBe(serviceData.name);
+      expect(response.body.data.name).toBe(stationData.name);
     });
 
-    // Temporarily skip the 401 test to focus on the main path
-    it.skip('should return 401 if no token is provided', async () => {
-      const serviceData = { name: 'No Auth GameStation', durationMinutes: 10, price: 10, currency: 'IRR' };
+    it('should return 401 if no token is provided', async () => {
+      const stationData = { name: 'No Auth GameStation', hourlyPrice: 10 };
       const response = await request(app)
-        .post(`/api/v1/gamingCenters/${testSalon.id}/stations`)
-        .send(serviceData);
+        .post(`/api/v1/gamingCenters/${testGamingCenter.id}/stations`)
+        .send(stationData);
 
       expect(response.status).toBe(401);
     });

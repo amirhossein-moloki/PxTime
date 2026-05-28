@@ -8,4 +8,4 @@ jest.mock('pino', () => ({
   })),
 }));
 
-jest.mock('./src/modules/notifications/sms.service');
+jest.mock('./src/modules/notifications/sms.station');

@@ -41,7 +41,7 @@ const sendBookingStatusSms = async (reservation: Reservation, gamingCenter: Salo
 
 export const initBookingEvents = () => {
   eventEmitter.on(AppEvents.BOOKING_CREATED, async ({ reservation, gamingCenter, customerAccount }) => {
-    AnalyticsRepo.syncAllStatsForReservation(reservation.id).catch(console.error);
+    AnalyticsRepo.syncAllStatsForBooking(reservation.id).catch(console.error);
     await sendBookingStatusSms(reservation, gamingCenter, customerAccount.phone, customerAccount.fullName || '');
   });
 
@@ -62,20 +62,20 @@ export const initBookingEvents = () => {
   });
 
   eventEmitter.on(AppEvents.BOOKING_CONFIRMED, async ({ reservation, gamingCenter, customerAccount }) => {
-    AnalyticsRepo.syncAllStatsForReservation(reservation.id).catch(console.error);
+    AnalyticsRepo.syncAllStatsForBooking(reservation.id).catch(console.error);
     await sendBookingStatusSms(reservation, gamingCenter, customerAccount.phone, customerAccount.fullName || '');
   });
 
   eventEmitter.on(AppEvents.BOOKING_CANCELED, async ({ reservation, gamingCenter, customerAccount }) => {
-    AnalyticsRepo.syncAllStatsForReservation(reservation.id).catch(console.error);
+    AnalyticsRepo.syncAllStatsForBooking(reservation.id).catch(console.error);
     await sendBookingStatusSms(reservation, gamingCenter, customerAccount.phone, customerAccount.fullName || '');
   });
 
   eventEmitter.on(AppEvents.BOOKING_COMPLETED, async ({ reservation }) => {
-    AnalyticsRepo.syncAllStatsForReservation(reservation.id).catch(console.error);
+    AnalyticsRepo.syncAllStatsForBooking(reservation.id).catch(console.error);
   });
 
   eventEmitter.on(AppEvents.BOOKING_NOSHOW, async ({ reservation }) => {
-    AnalyticsRepo.syncAllStatsForReservation(reservation.id).catch(console.error);
+    AnalyticsRepo.syncAllStatsForBooking(reservation.id).catch(console.error);
   });
 };

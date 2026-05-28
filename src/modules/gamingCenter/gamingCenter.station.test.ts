@@ -1,4 +1,4 @@
-import { salonService } from './gamingCenter.station';
+import { gamingCenterService } from './gamingCenter.station';
 import { salonRepository } from './gamingCenter.repository';
 import createHttpError from 'http-errors';
 
@@ -32,7 +32,7 @@ describe('SalonService', () => {
       (salonRepository.findBySlug as jest.Mock).mockResolvedValue(null);
       (salonRepository.create as jest.Mock).mockResolvedValue(createdSalon);
 
-      const result = await salonService.createSalon(salonData);
+      const result = await gamingCenterService.createSalon(salonData);
 
       expect(salonRepository.findBySlug).toHaveBeenCalledWith(salonData.slug);
       expect(salonRepository.create).toHaveBeenCalledWith(salonData);
@@ -55,7 +55,7 @@ describe('SalonService', () => {
         existingSalon,
       );
 
-      await expect(salonService.createSalon(salonData)).rejects.toThrow(
+      await expect(gamingCenterService.createSalon(salonData)).rejects.toThrow(
         createHttpError(409, 'A gamingCenter with this slug already exists'),
       );
 
@@ -77,7 +77,7 @@ describe('SalonService', () => {
 
       (salonRepository.findById as jest.Mock).mockResolvedValue(gamingCenter);
 
-      const result = await salonService.getSalonById(gamingCenterId);
+      const result = await gamingCenterService.getSalonById(gamingCenterId);
 
       expect(salonRepository.findById).toHaveBeenCalledWith(gamingCenterId);
       expect(result).toEqual(gamingCenter);
@@ -87,7 +87,7 @@ describe('SalonService', () => {
       const gamingCenterId = 'non-existent-id';
       (salonRepository.findById as jest.Mock).mockResolvedValue(null);
 
-      await expect(salonService.getSalonById(gamingCenterId)).rejects.toThrow(
+      await expect(gamingCenterService.getSalonById(gamingCenterId)).rejects.toThrow(
         createHttpError(404, 'GamingCenter not found'),
       );
 
@@ -112,7 +112,7 @@ describe('SalonService', () => {
       (salonRepository.findBySlug as jest.Mock).mockResolvedValue(null);
       (salonRepository.update as jest.Mock).mockResolvedValue(updatedSalon);
 
-      const result = await salonService.updateSalon(gamingCenterId, updateData);
+      const result = await gamingCenterService.updateSalon(gamingCenterId, updateData);
 
       expect(salonRepository.findById).toHaveBeenCalledWith(gamingCenterId);
       expect(salonRepository.findBySlug).toHaveBeenCalledWith(updateData.slug);
@@ -124,7 +124,7 @@ describe('SalonService', () => {
       (salonRepository.findById as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        salonService.updateSalon(gamingCenterId, updateData),
+        gamingCenterService.updateSalon(gamingCenterId, updateData),
       ).rejects.toThrow(createHttpError(404, 'GamingCenter not found'));
 
       expect(salonRepository.findById).toHaveBeenCalledWith(gamingCenterId);
@@ -141,7 +141,7 @@ describe('SalonService', () => {
       (salonRepository.findBySlug as jest.Mock).mockResolvedValue(anotherSalon);
 
       await expect(
-        salonService.updateSalon(gamingCenterId, updateData),
+        gamingCenterService.updateSalon(gamingCenterId, updateData),
       ).rejects.toThrow(
         createHttpError(409, 'A gamingCenter with this slug already exists'),
       );
@@ -167,7 +167,7 @@ describe('SalonService', () => {
         isActive: false,
       });
 
-      await salonService.deleteSalon(gamingCenterId);
+      await gamingCenterService.deleteSalon(gamingCenterId);
 
       expect(salonRepository.findById).toHaveBeenCalledWith(gamingCenterId);
       expect(salonRepository.softDelete).toHaveBeenCalledWith(gamingCenterId);
@@ -176,7 +176,7 @@ describe('SalonService', () => {
     it('should throw a 404 error if the gamingCenter to delete is not found', async () => {
       (salonRepository.findById as jest.Mock).mockResolvedValue(null);
 
-      await expect(salonService.deleteSalon(gamingCenterId)).rejects.toThrow(
+      await expect(gamingCenterService.deleteSalon(gamingCenterId)).rejects.toThrow(
         createHttpError(404, 'GamingCenter not found'),
       );
 
@@ -195,7 +195,7 @@ describe('SalonService', () => {
 
       (salonRepository.findAll as jest.Mock).mockResolvedValue(gamingCenters);
 
-      const result = await salonService.getAllSalons(query as any);
+      const result = await gamingCenterService.getAllSalons(query as any);
 
       expect(salonRepository.findAll).toHaveBeenCalledWith(query);
       expect(result).toEqual(gamingCenters);

@@ -117,7 +117,7 @@ export async function getPublicPage(req: PublicPageRequest, res: Response) {
     return;
   }
 
-  const slugHistory = await prisma.gamingCenterPageSlugHistory.findFirst({
+  const slugHistory = await prisma.pageSlugHistory.findFirst({
     where: {
       oldSlug: pageSlug,
       page: {

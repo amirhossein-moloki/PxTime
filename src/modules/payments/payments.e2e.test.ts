@@ -1,8 +1,8 @@
 import request from 'supertest';
 import cuid from 'cuid';
 import app from '../../app';
-import { createTestSalon, createTestService, createTestBooking, createTestUser, generateToken } from '../../common/utils/test-utils';
-import { ReservationPaymentState, UserRole } from '@prisma/client';
+import { createTestSalon, createTestService, createTestReservation, createTestUser, generateToken } from '../../common/utils/test-utils';
+import { ReservationPaymentState, UserRole, SessionActorType } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 
 describe('Payments E2E', () => {
@@ -12,14 +12,27 @@ describe('Payments E2E', () => {
 
   beforeEach(async () => {
     // Reset DB
-    await prisma.$executeRaw`TRUNCATE "GamingCenter", "User", "GameStation", "Reservation", "Payment", "CustomerAccount", "CustomerProfile" RESTART IDENTITY CASCADE;`;
+    await prisma.gamingSession.deleteMany({});
+    await prisma.payment.deleteMany({});
+    await prisma.reservation.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
+    await prisma.gameStation.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.customerProfile.deleteMany({});
+    await prisma.customerAccount.deleteMany({});
+    await prisma.gamingCenter.deleteMany({});
+
     const gamingCenter = await createTestSalon();
     const user = await createTestUser({ gamingCenterId: gamingCenter.id, role: UserRole.MANAGER });
     gamingCenterId = gamingCenter.id;
     const station = await createTestService({ gamingCenterId });
-    const reservation = await createTestBooking({ gamingCenterId, stationId: station.id, staffId: user.id });
+
+    const customerAccount = await prisma.customerAccount.create({ data: { phone: '09120000001' } });
+    const customerProfile = await prisma.customerProfile.create({ data: { gamingCenterId, customerAccountId: customerAccount.id } });
+
+    const reservation = await createTestReservation(gamingCenterId, customerAccount.id, customerProfile.id, station.id, user.id);
     reservationId = reservation.id;
-    token = generateToken({ userId: user.id, gamingCenterId: gamingCenter.id, role: user.role });
+    token = generateToken({ actorId: user.id, actorType: SessionActorType.USER });
   });
 
   describe('POST /api/v1/gamingCenters/:gamingCenterId/reservations/:reservationId/payments/init', () => {
@@ -53,7 +66,11 @@ describe('Payments E2E', () => {
       const salonB = await createTestSalon({ name: 'GamingCenter B', slug: 'gamingCenter-b' });
       const userB = await createTestUser({ gamingCenterId: salonB.id, phone: '9876543210' });
       const serviceB = await createTestService({ gamingCenterId: salonB.id });
-      const bookingB = await createTestBooking({ gamingCenterId: salonB.id, stationId: serviceB.id, staffId: userB.id });
+
+      const customerAccountB = await prisma.customerAccount.create({ data: { phone: '09120000002' } });
+      const customerProfileB = await prisma.customerProfile.create({ data: { gamingCenterId: salonB.id, customerAccountId: customerAccountB.id } });
+
+      const bookingB = await createTestReservation(salonB.id, customerAccountB.id, customerProfileB.id, serviceB.id, userB.id);
 
       // The token belongs to a user from the first gamingCenter (gamingCenterId)
       await request(app)
@@ -70,7 +87,7 @@ describe('Payments E2E', () => {
         role: UserRole.STAFF,
         phone: '1112223333', // a different phone number
       });
-      const staffToken = generateToken({ userId: staffUser.id, gamingCenterId, role: staffUser.role });
+      const staffToken = generateToken({ actorId: staffUser.id, actorType: SessionActorType.USER });
 
       const res = await request(app)
         .post(`/api/v1/gamingCenters/${gamingCenterId}/reservations/${reservationId}/payments/init`)

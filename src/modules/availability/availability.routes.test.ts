@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
+import { GameStationType } from '@prisma/client';
 
 describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
   let gamingCenter: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -42,7 +43,8 @@ describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
         gamingCenterId: gamingCenter.id,
         name: 'Availability Test GameStation',
         hourlyPrice: 100,
-        stationSkills: {
+        stationType: GameStationType.PC,
+        staffSkills: {
           create: {
             userId: staff.id,
           },
@@ -84,6 +86,7 @@ describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
         stationSnapshot: {
           name: station.name,
           hourlyPrice: station.hourlyPrice,
+          stationType: station.stationType,
         },
         totalHours: 1,
         totalPrice: station.hourlyPrice,
@@ -94,6 +97,7 @@ describe('GET /public/gamingCenters/:salonSlug/availability/slots', () => {
   afterAll(async () => {
     // Clean up in reverse order of creation
     await prisma.$transaction([
+      prisma.gamingSession.deleteMany({ where: { stationId: station.id } }),
       prisma.reservation.deleteMany({ where: { gamingCenterId: gamingCenter.id } }),
       prisma.customerProfile.deleteMany({ where: { gamingCenterId: gamingCenter.id } }),
       prisma.staffStationSkill.deleteMany({ where: { stationId: station.id } }),

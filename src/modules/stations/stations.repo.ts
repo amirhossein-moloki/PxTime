@@ -48,6 +48,8 @@ export async function findStationsByGamingCenterId(gamingCenterId: string, query
     sortOrder,
     minPrice,
     maxPrice,
+    stationType,
+    isVip,
     staffId,
   } = query;
   const { skip, take } = getPaginationParams(page, limit);
@@ -55,6 +57,8 @@ export async function findStationsByGamingCenterId(gamingCenterId: string, query
   const where: Prisma.GameStationWhereInput = {
     gamingCenterId,
     isActive: isActive !== undefined ? isActive : true,
+    stationType,
+    isVip,
   };
 
   if (search) {

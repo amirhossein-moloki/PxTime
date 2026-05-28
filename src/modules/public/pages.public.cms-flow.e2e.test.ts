@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { PageSectionType, PageStatus, PageType, UserRole } from '@prisma/client';
+import { PageSectionType, PageStatus, PageType, UserRole, SessionActorType } from '@prisma/client';
 import app from '../../app';
 import { createTestSalon, createTestUser, generateToken } from '../../common/utils/test-utils';
 import { prisma } from '../../config/prisma';
@@ -21,8 +21,8 @@ describe('CMS page lifecycle -> public pages', () => {
   const publishedSlug = 'stations';
 
   beforeAll(async () => {
-    await prisma.salonPageSlugHistory.deleteMany();
-    await prisma.salonPageSection.deleteMany();
+    await prisma.pageSlugHistory.deleteMany();
+    await prisma.pageSection.deleteMany();
     await prisma.page.deleteMany();
     await prisma.user.deleteMany();
     await prisma.gamingCenter.deleteMany();
@@ -40,15 +40,13 @@ describe('CMS page lifecycle -> public pages', () => {
 
     managerToken = generateToken({
       actorId: manager.id,
-      actorType: 'USER',
-      gamingCenterId: gamingCenter.id,
-      role: manager.role,
+      actorType: SessionActorType.USER,
     });
   });
 
   afterAll(async () => {
-    await prisma.salonPageSlugHistory.deleteMany();
-    await prisma.salonPageSection.deleteMany();
+    await prisma.pageSlugHistory.deleteMany();
+    await prisma.pageSection.deleteMany();
     await prisma.page.deleteMany();
     await prisma.user.deleteMany();
     await prisma.gamingCenter.deleteMany();

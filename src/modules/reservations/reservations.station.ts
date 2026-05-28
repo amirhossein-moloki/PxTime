@@ -64,7 +64,7 @@ const findOrCreateCustomerProfile = async (
   return { customerAccount, customerProfile };
 };
 
-export const bookingsService = {
+export const reservationsService = {
   async createBooking(input: CreateBookingInput & { gamingCenterId: string; createdByUserId: string; }) {
     const result = await ReservationsRepo.transaction(async (tx) => {
       const { gamingCenterId, stationId, staffId, customer, startTime: startAtString, createdByUserId, note } = input;

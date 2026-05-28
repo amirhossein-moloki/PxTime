@@ -12,6 +12,7 @@ describe('POST /api/v1/public/gamingCenters/:salonSlug/reservations', () => {
   let station: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
   beforeAll(async () => {
+    await prisma.gamingSession.deleteMany({});
     await prisma.reservation.deleteMany({});
     await IdempotencyRepo.clearAll();
     await prisma.staffStationSkill.deleteMany({});
@@ -31,9 +32,9 @@ describe('POST /api/v1/public/gamingCenters/:salonSlug/reservations', () => {
         },
       },
     });
-    staff = await createTestUser(gamingCenter.id, { role: 'STAFF' });
+    staff = await createTestUser({ gamingCenterId: gamingCenter.id, role: 'STAFF' });
     await prisma.user.update({ where: { id: staff.id }, data: { isPublic: true } });
-    station = await createTestStation(gamingCenter.id, { hourlyPrice: 75000 });
+    station = await createTestStation({ gamingCenterId: gamingCenter.id, hourlyPrice: 75000 });
 
     const startTime = set(add(new Date(), { days: 7 }), { hours: 10, minutes: 0, seconds: 0, milliseconds: 0 });
     await prisma.staffShift.create({
@@ -49,6 +50,7 @@ describe('POST /api/v1/public/gamingCenters/:salonSlug/reservations', () => {
   });
 
   afterAll(async () => {
+    await prisma.gamingSession.deleteMany({});
     await prisma.reservation.deleteMany({});
     await IdempotencyRepo.clearAll();
     await prisma.staffStationSkill.deleteMany({});

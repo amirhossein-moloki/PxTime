@@ -14,14 +14,14 @@ interface RequestWithSalon extends Request {
 /**
  * Handle request to create a new station.
  */
-export async function createService(
+export async function createStation(
   req: Request<{ gamingCenterId: string }, unknown, CreateServiceInput>,
   res: Response,
   next: NextFunction
 ) {
   try {
     const { gamingCenterId } = req.params;
-    const newService = await stationLogic.createService(gamingCenterId, req.body);
+    const newService = await stationLogic.createStation(gamingCenterId, req.body);
     res.created(newService);
   } catch (error) {
     next(error);
@@ -46,7 +46,7 @@ export async function getServices(
 
     const validatedQuery = listServicesSchema.parse(req.query);
 
-    const stations = await stationLogic.getServicesForSalon(
+    const stations = await stationLogic.getStationsForGamingCenter(
       targetSalonId,
       validatedQuery
     );
@@ -59,14 +59,14 @@ export async function getServices(
 /**
  * Handle request to get a single station by its ID.
  */
-export async function getServiceById(
+export async function getStationById(
   req: Request<{ gamingCenterId: string; stationId: string }>,
   res: Response,
   next: NextFunction
 ) {
   try {
     const { gamingCenterId, stationId } = req.params;
-    const station = await stationLogic.getServiceById(stationId, gamingCenterId);
+    const station = await stationLogic.getStationById(stationId, gamingCenterId);
     res.ok(station);
   } catch (error) {
     next(error);
@@ -76,14 +76,14 @@ export async function getServiceById(
 /**
  * Handle request to update a station.
  */
-export async function updateService(
+export async function updateStation(
   req: Request<{ gamingCenterId: string; stationId: string }, unknown, UpdateServiceInput>,
   res: Response,
   next: NextFunction
 ) {
   try {
     const { gamingCenterId, stationId } = req.params;
-    const updatedService = await stationLogic.updateService(
+    const updatedService = await stationLogic.updateStation(
       stationId,
       gamingCenterId,
       req.body,
@@ -106,7 +106,7 @@ export async function deleteService(
 ) {
   try {
     const { gamingCenterId, stationId } = req.params;
-    await stationLogic.deactivateService(
+    await stationLogic.deactivateStation(
       stationId,
       gamingCenterId,
       (req as any).actor, // eslint-disable-line @typescript-eslint/no-explicit-any

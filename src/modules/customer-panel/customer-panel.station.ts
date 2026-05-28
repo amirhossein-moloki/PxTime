@@ -113,7 +113,6 @@ export const CustomerPanelService = {
     try {
       const rating = await reviewsRepo.createReview(reservation.gamingCenterId, customerAccountId, {
         reservationId,
-        target: input.target,
         rating: input.rating,
         stationId: input.stationId,
         comment: input.comment,

@@ -9,7 +9,7 @@ import { UserRole } from '@prisma/client';
 import { asyncHandler } from '../../common/middleware/asyncHandler';
 import {
   upsertPolicySchema,
-  listCommissionsQuerySchema,
+  listEarningsQuerySchema,
   recordCommissionPaymentSchema,
 } from './commissions.validators';
 
@@ -35,8 +35,8 @@ router.post(
 router.get(
   '/',
   requireRole([UserRole.MANAGER]),
-  validate(listCommissionsQuerySchema),
-  asyncHandler(commissionsController.listCommissions)
+  validate(listEarningsQuerySchema),
+  asyncHandler(commissionsController.listEarnings)
 );
 
 router.post(

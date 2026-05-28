@@ -15,9 +15,9 @@ describe('AnalyticsService (Unit Tests)', () => {
 
   it('should return correct summary', async () => {
     (AnalyticsRepo.getSummaryStats as jest.Mock).mockResolvedValue({
-      totalBookings: 4,
-      completedBookings: 2,
-      canceledBookings: 1,
+      totalReservations: 4,
+      completedReservations: 2,
+      canceledReservations: 1,
       revenue: 80000,
       realizedCash: 80000,
     });
@@ -38,11 +38,17 @@ describe('AnalyticsService (Unit Tests)', () => {
     (AnalyticsRepo.getStaffPerformanceStats as jest.Mock).mockResolvedValue([
       {
         staffId: 'staff-1',
-        _sum: { completedBookings: 2, revenue: 80000, totalRating: 9, ratingCount: 2 },
+        completedReservations: 2,
+        revenue: 80000,
+        totalRating: 9,
+        ratingCount: 2,
       },
       {
         staffId: 'staff-2',
-        _sum: { completedBookings: 1, revenue: 40000, totalRating: 0, ratingCount: 0 },
+        completedReservations: 1,
+        revenue: 40000,
+        totalRating: 0,
+        ratingCount: 0,
       },
     ]);
     (AnalyticsRepo.getStaffDetails as jest.Mock).mockResolvedValue([
@@ -69,11 +75,13 @@ describe('AnalyticsService (Unit Tests)', () => {
     (AnalyticsRepo.getServicePerformanceStats as jest.Mock).mockResolvedValue([
       {
         stationId: 'station-1',
-        _sum: { completedBookings: 1, revenue: 50000 },
+        completedReservations: 1,
+        revenue: 50000,
       },
       {
         stationId: 'station-2',
-        _sum: { completedBookings: 1, revenue: 40000 },
+        completedReservations: 1,
+        revenue: 40000,
       },
     ]);
     (AnalyticsRepo.getServiceDetails as jest.Mock).mockResolvedValue([

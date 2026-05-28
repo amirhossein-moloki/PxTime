@@ -1,4 +1,4 @@
-import { auditService } from './audit.station';
+import { auditService, RecordLogInput } from './audit.station';
 import { AuditRepo } from './audit.repo';
 import { SessionActorType } from '@prisma/client';
 
@@ -12,16 +12,16 @@ describe('AuditService', () => {
 
   describe('recordLog', () => {
     it('should record a log entry successfully', async () => {
-      const input = {
+      const input: RecordLogInput = {
         gamingCenterId: 'gamingCenter-1',
-        actorId: 'actor-1',
+        userId: 'actor-1',
         actorType: SessionActorType.USER,
         action: 'TEST_ACTION',
         entity: 'TestEntity',
         entityId: 'entity-1',
       };
 
-      mockedAuditRepo.createLog.mockResolvedValue({ id: 'log-1', ...input, createdAt: new Date(), oldData: null, newData: null, ipAddress: null, userAgent: null });
+      mockedAuditRepo.createLog.mockResolvedValue({ id: 'log-1', ...input, createdAt: new Date(), oldData: null, newData: null, ipAddress: null, userAgent: null, customerId: null } as any);
 
       const result = await auditService.recordLog(input);
 

@@ -102,7 +102,7 @@ describe('CMS Pages API E2E Tests', () => {
   });
 
   afterAll(async () => {
-    await prisma.salonPageSection.deleteMany();
+    await prisma.pageSection.deleteMany();
     await prisma.page.deleteMany();
     await prisma.user.deleteMany();
     await prisma.gamingCenter.deleteMany();
@@ -234,7 +234,7 @@ describe('CMS Pages API E2E Tests', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data.slug).toBe('home-updated');
 
-      const history = await prisma.salonPageSlugHistory.findFirst({
+      const history = await prisma.pageSlugHistory.findFirst({
         where: { pageId: publishedPageId, oldSlug: 'home' },
       });
 

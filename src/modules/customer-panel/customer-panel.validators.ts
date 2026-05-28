@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ReservationStatus, RatingTarget } from '@prisma/client';
+import { ReservationStatus } from '@prisma/client';
 
 const CUID_MESSAGE = 'Invalid CUID';
 
@@ -26,7 +26,6 @@ export const customerSubmitReviewSchema = z.object({
     reservationId: z.string().cuid(CUID_MESSAGE),
   }),
   body: z.object({
-    target: z.nativeEnum(RatingTarget),
     stationId: z.string().cuid(CUID_MESSAGE).optional(),
     rating: z.number().min(1).max(5),
     comment: z.string().max(1000).optional(),

@@ -2,7 +2,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { ReservationStatus, RatingTarget, GamingCenter, GameStation, User } from '@prisma/client';
+import { ReservationStatus, GamingCenter, GameStation, User, GameStationType, SessionActorType } from '@prisma/client';
 import {
   createTestSalon,
   createTestService,
@@ -28,10 +28,11 @@ describe('Customer Panel E2E Tests', () => {
   beforeEach(async () => {
     // Cleanup
     await prisma.rating.deleteMany();
+    await prisma.gamingSession.deleteMany();
     await prisma.reservation.deleteMany();
     await prisma.customerProfile.deleteMany();
     await prisma.customerAccount.deleteMany();
-    await prisma.userService.deleteMany();
+    await prisma.staffStationSkill.deleteMany();
     await prisma.gameStation.deleteMany();
     await prisma.user.deleteMany();
     await prisma.gamingCenter.deleteMany();
@@ -40,6 +41,14 @@ describe('Customer Panel E2E Tests', () => {
     gamingCenter = await createTestSalon();
     station = await createTestService({ gamingCenterId: gamingCenter.id });
     staff = await createTestUser({ gamingCenterId: gamingCenter.id });
+
+    // Link staff to station
+    await prisma.staffStationSkill.create({
+      data: {
+        userId: staff.id,
+        stationId: station.id,
+      }
+    });
 
     customerAccount = await prisma.customerAccount.create({
       data: {
@@ -50,7 +59,7 @@ describe('Customer Panel E2E Tests', () => {
 
     customerToken = generateToken({
       actorId: customerAccount.id,
-      actorType: 'CUSTOMER',
+      actorType: SessionActorType.CUSTOMER,
     });
   });
 
@@ -69,7 +78,7 @@ describe('Customer Panel E2E Tests', () => {
     it('should return 403 if actor is not a customer', async () => {
       const staffToken = generateToken({
         actorId: staff.id,
-        actorType: 'USER',
+        actorType: SessionActorType.USER,
       });
 
       const res = await request(app)
@@ -110,11 +119,13 @@ describe('Customer Panel E2E Tests', () => {
           staffId: staff.id,
           startTime: new Date(),
           endTime: new Date(Date.now() + 3600000),
-          (stationSnapshot as any): station.name,
-          (stationSnapshot as any): station.durationMinutes,
-          (stationSnapshot as any): station.price,
-          (stationSnapshot as any): station.currency,
-          totalPrice: station.price,
+          stationSnapshot: {
+            name: station.name,
+            hourlyPrice: station.hourlyPrice,
+            stationType: station.stationType,
+          },
+          totalPrice: station.hourlyPrice,
+          totalHours: 1,
           createdByUserId: staff.id,
           status: ReservationStatus.CONFIRMED,
         },
@@ -148,11 +159,13 @@ describe('Customer Panel E2E Tests', () => {
           staffId: staff.id,
           startTime: new Date(),
           endTime: new Date(Date.now() + 3600000),
-          (stationSnapshot as any): station.name,
-          (stationSnapshot as any): station.durationMinutes,
-          (stationSnapshot as any): station.price,
-          (stationSnapshot as any): station.currency,
-          totalPrice: station.price,
+          stationSnapshot: {
+            name: station.name,
+            hourlyPrice: station.hourlyPrice,
+            stationType: station.stationType,
+          },
+          totalPrice: station.hourlyPrice,
+          totalHours: 1,
           createdByUserId: staff.id,
           status: ReservationStatus.CONFIRMED,
         },
@@ -188,11 +201,13 @@ describe('Customer Panel E2E Tests', () => {
             staffId: staff.id,
             startTime: new Date(),
             endTime: new Date(Date.now() + 3600000),
-            (stationSnapshot as any): station.name,
-            (stationSnapshot as any): station.durationMinutes,
-            (stationSnapshot as any): station.price,
-            (stationSnapshot as any): station.currency,
-            totalPrice: station.price,
+            stationSnapshot: {
+              name: station.name,
+              hourlyPrice: station.hourlyPrice,
+              stationType: station.stationType,
+            },
+            totalPrice: station.hourlyPrice,
+            totalHours: 1,
             createdByUserId: staff.id,
             status: ReservationStatus.CONFIRMED,
           },
@@ -225,11 +240,13 @@ describe('Customer Panel E2E Tests', () => {
           staffId: staff.id,
           startTime: new Date(),
           endTime: new Date(Date.now() + 3600000),
-          (stationSnapshot as any): station.name,
-          (stationSnapshot as any): station.durationMinutes,
-          (stationSnapshot as any): station.price,
-          (stationSnapshot as any): station.currency,
-          totalPrice: station.price,
+          stationSnapshot: {
+            name: station.name,
+            hourlyPrice: station.hourlyPrice,
+            stationType: station.stationType,
+          },
+          totalPrice: station.hourlyPrice,
+          totalHours: 1,
           createdByUserId: staff.id,
           status: ReservationStatus.COMPLETED,
         },
@@ -239,7 +256,6 @@ describe('Customer Panel E2E Tests', () => {
         .post(`/api/v1/customer/reservations/${reservation.id}/ratings`)
         .set('Authorization', `Bearer ${customerToken}`)
         .send({
-          target: RatingTarget.SALON,
           rating: 5,
           comment: 'Great station!',
         });
@@ -266,11 +282,13 @@ describe('Customer Panel E2E Tests', () => {
               staffId: staff.id,
               startTime: new Date(),
               endTime: new Date(Date.now() + 3600000),
-              (stationSnapshot as any): station.name,
-              (stationSnapshot as any): station.durationMinutes,
-              (stationSnapshot as any): station.price,
-              (stationSnapshot as any): station.currency,
-              totalPrice: station.price,
+              stationSnapshot: {
+                name: station.name,
+                hourlyPrice: station.hourlyPrice,
+                stationType: station.stationType,
+              },
+              totalPrice: station.hourlyPrice,
+              totalHours: 1,
               createdByUserId: staff.id,
               status: ReservationStatus.CONFIRMED,
             },
@@ -280,7 +298,6 @@ describe('Customer Panel E2E Tests', () => {
             .post(`/api/v1/customer/reservations/${reservation.id}/ratings`)
             .set('Authorization', `Bearer ${customerToken}`)
             .send({
-              target: RatingTarget.SALON,
               rating: 5,
               comment: 'Great station!',
             });
