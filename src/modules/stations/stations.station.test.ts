@@ -1,17 +1,17 @@
 import { prisma } from '../../config/prisma';
-import * as serviceLogic from './stations.station';
-import { User, GamingCenter } from '@prisma/client';
+import * as stationLogic from './stations.station';
+import { User, GamingCenter, GameStationType } from '@prisma/client';
 import { CreateServiceInput } from './stations.types';
 
-describe('Services GameStation Logic Integration Tests', () => {
-  let testSalon: GamingCenter;
+describe('GameStation Logic Integration Tests', () => {
+  let testGamingCenter: GamingCenter;
   let _testUser: User; // eslint-disable-line @typescript-eslint/no-unused-vars
 
   beforeAll(async () => {
     // Create a gamingCenter for the tests
-    testSalon = await prisma.gamingCenter.create({
+    testGamingCenter = await prisma.gamingCenter.create({
       data: {
-        name: 'Test GamingCenter for Services',
+        name: 'Test GamingCenter for Stations',
         slug: `test-gamingCenter-stations-${Date.now()}`,
       },
     });
@@ -21,7 +21,7 @@ describe('Services GameStation Logic Integration Tests', () => {
         fullName: 'Test User',
         phone: `+989120000000${Date.now()}`.slice(0, 14),
         role: 'MANAGER',
-        gamingCenterId: testSalon.id,
+        gamingCenterId: testGamingCenter.id,
       },
     });
   });
@@ -34,29 +34,32 @@ describe('Services GameStation Logic Integration Tests', () => {
     await prisma.$disconnect();
   });
 
-  describe('createService', () => {
+  describe('createStation', () => {
     it('should create a new station and store it in the database', async () => {
-      const serviceData: CreateServiceInput = {
-        name: 'Manicure',
-        durationMinutes: 45,
-        price: 75000,
-        currency: 'IRR',
+      const stationData: CreateServiceInput = {
+        name: 'PC Station 01',
+        stationType: GameStationType.PC,
+        hourlyPrice: 75000,
+        minRentHours: 1,
+        maxRentHours: 8,
+        defaultDurationHours: 1,
+        incrementMinutes: 30,
       };
 
-      const createdService = await serviceLogic.createService(testSalon.id, serviceData);
+      const createdStation = await stationLogic.createStation(testGamingCenter.id, stationData);
 
-      expect(createdService).toBeDefined();
-      expect(createdService.id).toBeDefined();
-      expect(createdService.name).toBe(serviceData.name);
-      expect(createdService.price).toBe(serviceData.price);
-      expect(createdService.gamingCenterId).toBe(testSalon.id);
+      expect(createdStation).toBeDefined();
+      expect(createdStation.id).toBeDefined();
+      expect(createdStation.name).toBe(stationData.name);
+      expect(createdStation.hourlyPrice).toBe(stationData.hourlyPrice);
+      expect(createdStation.gamingCenterId).toBe(testGamingCenter.id);
 
       // Verify it exists in the DB
-      const dbService = await prisma.gameStation.findUnique({
-        where: { id: createdService.id },
+      const dbStation = await prisma.gameStation.findUnique({
+        where: { id: createdStation.id },
       });
-      expect(dbService).not.toBeNull();
-      expect(dbService?.name).toBe(serviceData.name);
+      expect(dbStation).not.toBeNull();
+      expect(dbStation?.name).toBe(stationData.name);
     });
   });
 });

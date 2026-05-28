@@ -1,15 +1,15 @@
 import request from 'supertest';
 import crypto from 'crypto';
 import app from '../../app';
-import { createTestSalon, createTestService, createTestBooking, createTestPayment, createTestUser } from '../../common/utils/test-utils';
-import { ReservationPaymentState, PaymentStatus } from '@prisma/client';
+import { createTestSalon, createTestService, createTestReservation, createTestUser, createTestPayment } from '../../common/utils/test-utils';
+import { ReservationPaymentState, PaymentStatus, SessionActorType } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { IdempotencyRepo } from '../../common/repositories/idempotency.repo';
 import { env } from '../../config/env';
 
 // Helper to generate a valid signature
 const generateSignature = (payload: Buffer) => {
-  const hmac = crypto.createHmac('sha256', env.PAYMENT_PROVIDER_WEBHOOK_SECRET);
+  const hmac = crypto.createHmac('sha256', env.PAYMENT_PROVIDER_WEBHOOK_SECRET || 'test-secret');
   return hmac.update(payload).digest('hex');
 };
 
@@ -20,7 +20,16 @@ describe('Webhooks E2E', () => {
 
   beforeEach(async () => {
     // Reset DB
-    await prisma.$executeRaw`TRUNCATE "GamingCenter", "User", "GameStation", "Reservation", "Payment", "CustomerAccount", "CustomerProfile" RESTART IDENTITY CASCADE;`;
+    await prisma.gamingSession.deleteMany({});
+    await prisma.payment.deleteMany({});
+    await prisma.reservation.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
+    await prisma.gameStation.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.customerProfile.deleteMany({});
+    await prisma.customerAccount.deleteMany({});
+    await prisma.gamingCenter.deleteMany({});
+
     await IdempotencyRepo.clearAll();
 
     const gamingCenter = await createTestSalon();
@@ -28,7 +37,11 @@ describe('Webhooks E2E', () => {
 
     const user = await createTestUser({ gamingCenterId });
     const station = await createTestService({ gamingCenterId });
-    const reservation = await createTestBooking({ gamingCenterId, stationId: station.id, staffId: user.id });
+
+    const customerAccount = await prisma.customerAccount.create({ data: { phone: '09120000001' } });
+    const customerProfile = await prisma.customerProfile.create({ data: { gamingCenterId, customerAccountId: customerAccount.id } });
+
+    const reservation = await createTestReservation(gamingCenterId, customerAccount.id, customerProfile.id, station.id, user.id);
     reservationId = reservation.id;
 
     // Create a payment in the INITIATED state to simulate a real flow
@@ -94,8 +107,6 @@ describe('Webhooks E2E', () => {
           .expect(200);
 
         // We expect the idempotency key to be found, and the request to be acknowledged without processing.
-        // No easy way to assert "not re-processed" other than ensuring it doesn't fail.
-        // We can check that the idempotency key exists in Redis.
         const existingKey = await IdempotencyRepo.findKey(`payment-webhook:${provider}`, payload.eventId);
         expect(existingKey).not.toBeNull();
       });

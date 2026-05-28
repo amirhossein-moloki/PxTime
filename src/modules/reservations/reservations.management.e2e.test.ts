@@ -3,7 +3,7 @@ import app from '../../app';
 import { prisma } from '../../config/prisma';
 import { createTestSalon, createTestUser, createTestService, createTestShift, generateToken } from '../../common/utils/test-utils';
 import { add, set } from 'date-fns';
-import { UserRole } from '@prisma/client';
+import { UserRole, SessionActorType } from '@prisma/client';
 
 describe('Reservation Management E2E', () => {
   let gamingCenter: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -13,8 +13,9 @@ describe('Reservation Management E2E', () => {
   let managerToken: string;
 
   beforeAll(async () => {
+    await prisma.gamingSession.deleteMany({});
     await prisma.reservation.deleteMany({});
-    await prisma.userService.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
     await prisma.gameStation.deleteMany({});
     await prisma.staffShift.deleteMany({});
     await prisma.user.deleteMany({});
@@ -32,8 +33,14 @@ describe('Reservation Management E2E', () => {
     });
     manager = await createTestUser({ gamingCenterId: gamingCenter.id, role: UserRole.MANAGER });
     staff = await createTestUser({ gamingCenterId: gamingCenter.id, role: UserRole.STAFF });
-    station = await createTestService({ gamingCenterId: gamingCenter.id, durationMinutes: 45, price: 120000 });
-    await prisma.userService.create({ data: { userId: staff.id, stationId: station.id } });
+    station = await createTestService({ gamingCenterId: gamingCenter.id, defaultDurationHours: 1, hourlyPrice: 120000 });
+
+    await prisma.staffStationSkill.create({
+        data: {
+            userId: staff.id,
+            stationId: station.id
+        }
+    });
 
     const startTime = set(add(new Date(), { days: 7 }), { hours: 10, minutes: 0, seconds: 0, milliseconds: 0 });
     await createTestShift({
@@ -46,15 +53,14 @@ describe('Reservation Management E2E', () => {
 
     managerToken = generateToken({
       actorId: manager.id,
-      actorType: 'USER',
-      gamingCenterId: gamingCenter.id,
-      role: manager.role,
+      actorType: SessionActorType.USER,
     });
   });
 
   afterAll(async () => {
+    await prisma.gamingSession.deleteMany({});
     await prisma.reservation.deleteMany({});
-    await prisma.userService.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
     await prisma.gameStation.deleteMany({});
     await prisma.staffShift.deleteMany({});
     await prisma.user.deleteMany({});
@@ -99,7 +105,7 @@ describe('Reservation Management E2E', () => {
     expect(updateResponse.body.success).toBe(true);
     expect(new Date(updateResponse.body.data.startTime).toISOString()).toBe(updatedStartAt.toISOString());
 
-    const expectedEndAt = add(updatedStartAt, { minutes: station.durationMinutes });
+    const expectedEndAt = add(updatedStartAt, { hours: station.defaultDurationHours });
     expect(new Date(updateResponse.body.data.endTime).toISOString()).toBe(expectedEndAt.toISOString());
 
     const completeResponse = await request(app)

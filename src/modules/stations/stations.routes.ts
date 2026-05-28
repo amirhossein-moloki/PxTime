@@ -2,8 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import * as ServiceController from './stations.controller';
 import { validate } from '../../common/middleware/validate';
 import {
-  createServiceSchema,
-  updateServiceSchema,
+  createStationSchema,
+  updateStationSchema,
   serviceIdParamSchema,
 } from './stations.validators';
 import { authMiddleware } from '../../common/middleware/auth';
@@ -24,8 +24,8 @@ privateServiceRouter.use(privateApiRateLimiter, authMiddleware, tenantGuard);
 privateServiceRouter.post(
   '/',
   requireRole([UserRole.MANAGER]),
-  validate(createServiceSchema),
-  ServiceController.createService
+  validate(createStationSchema),
+  ServiceController.createStation
 );
 
 privateServiceRouter.get(
@@ -38,14 +38,14 @@ privateServiceRouter.get(
   '/:stationId',
   requireRole([UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.STAFF]),
   validate(serviceIdParamSchema),
-  ServiceController.getServiceById
+  ServiceController.getStationById
 );
 
 privateServiceRouter.patch(
   '/:stationId',
   requireRole([UserRole.MANAGER]),
-  validate(updateServiceSchema),
-  ServiceController.updateService
+  validate(updateStationSchema),
+  ServiceController.updateStation
 );
 
 privateServiceRouter.delete(

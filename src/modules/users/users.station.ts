@@ -17,7 +17,7 @@ export const createStaffMember = async (
 
   await auditService.recordLog({
     gamingCenterId,
-    actorId: actor.id,
+    userId: actor.id,
     actorType: actor.actorType,
     action: 'USER_CREATE',
     entity: 'User',
@@ -62,7 +62,7 @@ export const updateStaffMember = async (
 
   await auditService.recordLog({
     gamingCenterId,
-    actorId: actor.id,
+    userId: actor.id,
     actorType: actor.actorType,
     action: 'USER_UPDATE',
     entity: 'User',
@@ -91,7 +91,7 @@ export const deleteStaffMember = async (
 
   await auditService.recordLog({
     gamingCenterId,
-    actorId: actor.id,
+    userId: actor.id,
     actorType: actor.actorType,
     action: 'USER_DELETE',
     entity: 'User',

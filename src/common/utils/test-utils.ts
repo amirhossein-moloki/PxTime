@@ -1,23 +1,28 @@
 import {
   Reservation,
-  Payment,
-  PaymentStatus,
   GamingCenter,
   GameStation,
-  StaffShift,
   User,
   UserRole,
-  PaymentProvider,
   ReservationStatus,
   ReservationSource,
   ReservationPaymentState,
-  GameStationType
+  GameStationType,
+  SessionActorType,
+  StaffShift,
+  ShiftRole,
+  Payment,
+  PaymentStatus,
+  PaymentProvider,
+  PaymentMethod
 } from '@prisma/client';
 import { prisma } from '../../config/prisma';
 import { faker } from '@faker-js/faker';
+import jwt from 'jsonwebtoken';
+import { env } from '../../config/env';
 
-export const createTestGamingCenter = (options?: { name?: string; slug?: string; settings?: any }): Promise<GamingCenter> => {
-  const { name = 'Test Gaming Center', slug = 'test-gaming-center', settings } = options || {};
+export const createTestSalon = (options?: { name?: string; slug?: string; settings?: any }): Promise<GamingCenter> => {
+  const { name = 'Test Gaming Center', slug = faker.lorem.slug(), settings } = options || {};
   return prisma.gamingCenter.create({
     data: {
       name,
@@ -29,8 +34,10 @@ export const createTestGamingCenter = (options?: { name?: string; slug?: string;
   });
 };
 
-export const createTestUser = (gamingCenterId: string, options?: { role?: UserRole; phone?: string }): Promise<User> => {
-  const { role = UserRole.STAFF, phone = faker.phone.number() } = options || {};
+export const createTestGamingCenter = createTestSalon;
+
+export const createTestUser = (options: { gamingCenterId: string; role?: UserRole; phone?: string }): Promise<User> => {
+  const { gamingCenterId, role = UserRole.STAFF, phone = faker.phone.number() } = options;
   return prisma.user.create({
     data: {
       gamingCenterId,
@@ -41,17 +48,20 @@ export const createTestUser = (gamingCenterId: string, options?: { role?: UserRo
   });
 };
 
-export const createTestStation = (gamingCenterId: string, options?: { name?: string }): Promise<GameStation> => {
-  const { name = 'Test Station' } = options || {};
+export const createTestStation = (options: { gamingCenterId: string } & Partial<GameStation>): Promise<GameStation> => {
+  const { gamingCenterId, name = 'Test Station', stationType = GameStationType.PC, hourlyPrice = 50000 } = options;
   return prisma.gameStation.create({
     data: {
       gamingCenterId,
       name,
-      stationType: GameStationType.PC,
-      hourlyPrice: 50000,
+      stationType,
+      hourlyPrice,
+      ...options,
     },
   });
 };
+
+export const createTestService = createTestStation;
 
 export const createTestReservation = (
   gamingCenterId: string,
@@ -73,9 +83,8 @@ export const createTestReservation = (
       endTime: new Date(Date.now() + 3600000),
       stationSnapshot: {
         name: 'Snapshot Station',
-        price: 50000,
-        durationMinutes: 60,
-        currency: 'IRR'
+        hourlyPrice: 50000,
+        stationType: GameStationType.PC,
       },
       totalPrice: 50000,
       totalHours: 1,
@@ -85,4 +94,51 @@ export const createTestReservation = (
       ...options,
     },
   });
+};
+
+export const createTestShift = (options: {
+    gamingCenterId: string;
+    userId: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    shiftRole?: ShiftRole;
+  }): Promise<StaffShift> => {
+    return prisma.staffShift.create({
+      data: {
+        ...options,
+        shiftRole: options.shiftRole || ShiftRole.HOST,
+      },
+    });
+  };
+
+export const createTestPayment = (options: {
+    gamingCenterId: string;
+    reservationId: string;
+    amount?: number;
+    status?: PaymentStatus;
+    provider?: PaymentProvider;
+  }): Promise<Payment> => {
+    return prisma.payment.create({
+      data: {
+        gamingCenterId: options.gamingCenterId,
+        reservationId: options.reservationId,
+        amount: options.amount || 1000,
+        currency: 'IRR',
+        status: options.status || PaymentStatus.PENDING,
+        provider: options.provider || PaymentProvider.MANUAL,
+        method: PaymentMethod.ONLINE,
+      },
+    });
+  };
+
+export const generateToken = (payload: { actorId: string; actorType: SessionActorType | string; sessionId?: string }): string => {
+  return jwt.sign(
+    {
+      actorId: payload.actorId,
+      actorType: payload.actorType,
+      sessionId: payload.sessionId || 'test-session-id',
+    },
+    env.JWT_ACCESS_SECRET as string
+  );
 };

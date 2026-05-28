@@ -26,7 +26,7 @@ export const upsertPolicySchema = z.object({
   }),
 });
 
-export const listCommissionsQuerySchema = z.object({
+export const listEarningsQuerySchema = z.object({
   query: z.object({
     page: z.preprocess((val) => Number(val), z.number().int().min(1)).optional(),
     pageSize: z.preprocess((val) => Number(val), z.number().int().min(1).max(100)).optional(),
@@ -51,5 +51,5 @@ export const recordCommissionPaymentSchema = z.object({
 });
 
 export type UpsertPolicyInput = z.infer<typeof upsertPolicySchema>['body'];
-export type ListCommissionsQuery = z.infer<typeof listCommissionsQuerySchema>['query'];
+export type ListCommissionsQuery = z.infer<typeof listEarningsQuerySchema>['query'];
 export type RecordCommissionPaymentInput = z.infer<typeof recordCommissionPaymentSchema>['body'];

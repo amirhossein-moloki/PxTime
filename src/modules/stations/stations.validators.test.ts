@@ -1,56 +1,46 @@
-import { createServiceSchema } from './stations.validators';
+import { createStationSchema } from './stations.validators';
+import { GameStationType } from '@prisma/client';
 
 describe('GameStation Validators', () => {
-  describe('createServiceSchema', () => {
+  describe('createStationSchema', () => {
     const validData = {
       body: {
         name: 'Test GameStation',
-        durationMinutes: 30,
-        price: 50000,
-        currency: 'IRR',
+        stationType: GameStationType.PC,
+        hourlyPrice: 50000,
+        minRentHours: 1,
+        maxRentHours: 8,
+        defaultDurationHours: 1,
+        incrementMinutes: 30,
         isActive: true,
       },
     };
 
     it('should pass with valid data', () => {
-      const result = createServiceSchema.safeParse(validData);
+      const result = createStationSchema.safeParse(validData);
       expect(result.success).toBe(true);
     });
 
     it('should fail if name is empty', () => {
       const invalidData = { ...validData, body: { ...validData.body, name: '' } };
-      const result = createServiceSchema.safeParse(invalidData);
+      const result = createStationSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
     });
 
-    it('should fail if duration is not a positive integer', () => {
-      const invalidData = { ...validData, body: { ...validData.body, durationMinutes: 0 } };
-      const result = createServiceSchema.safeParse(invalidData);
+    it('should fail if hourlyPrice is negative', () => {
+      const invalidData = { ...validData, body: { ...validData.body, hourlyPrice: -100 } };
+      const result = createStationSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
     });
 
-    it('should fail if price is negative', () => {
-      const invalidData = { ...validData, body: { ...validData.body, price: -100 } };
-      const result = createServiceSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should fail if currency code is not 3 letters', () => {
-      const invalidData = { ...validData, body: { ...validData.body, currency: 'IR' } };
-      const result = createServiceSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('should pass if isActive is not provided', () => {
-      const dataWithoutIsActive = {
+    it('should pass if optional fields are not provided', () => {
+      const minimalData = {
         body: {
           name: 'Test GameStation',
-          durationMinutes: 30,
-          price: 50000,
-          currency: 'IRR',
+          hourlyPrice: 50000,
         },
       };
-      const result = createServiceSchema.safeParse(dataWithoutIsActive);
+      const result = createStationSchema.safeParse(minimalData);
       expect(result.success).toBe(true);
     });
   });

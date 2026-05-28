@@ -12,8 +12,8 @@ jest.mock('uuid', () => ({
 
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { GamingCenter, User, UserRole, GameStation, Reservation } from '@prisma/client';
-import { createTestUser, createTestSalon, generateToken, createTestService, createTestBooking } from '../../common/utils/test-utils';
+import { GamingCenter, User, UserRole, GameStation, Reservation, SessionActorType } from '@prisma/client';
+import { createTestUser, createTestSalon, generateToken, createTestService, createTestReservation } from '../../common/utils/test-utils';
 
 describe('Security Hardening E2E Tests', () => {
   let salonA: GamingCenter;
@@ -32,25 +32,39 @@ describe('Security Hardening E2E Tests', () => {
   beforeAll(async () => {
     await prisma.$connect();
 
+    await prisma.gamingSession.deleteMany({});
+    await prisma.reservation.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
+    await prisma.gameStation.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.customerProfile.deleteMany({});
+    await prisma.customerAccount.deleteMany({});
+    await prisma.gamingCenter.deleteMany({});
+
     salonA = await createTestSalon({ name: 'GamingCenter A', slug: 'gamingCenter-a' });
     managerA = await createTestUser({ gamingCenterId: salonA.id, role: UserRole.MANAGER, phone: '09111111111' });
     staffA1 = await createTestUser({ gamingCenterId: salonA.id, role: UserRole.STAFF, phone: '09111111112' });
     staffA2 = await createTestUser({ gamingCenterId: salonA.id, role: UserRole.STAFF, phone: '09111111113' });
-    _tokenManagerA = generateToken({ actorId: managerA.id, actorType: 'USER', gamingCenterId: salonA.id });
-    tokenStaffA1 = generateToken({ actorId: staffA1.id, actorType: 'USER', gamingCenterId: salonA.id, role: UserRole.STAFF });
+    _tokenManagerA = generateToken({ actorId: managerA.id, actorType: SessionActorType.USER });
+    tokenStaffA1 = generateToken({ actorId: staffA1.id, actorType: SessionActorType.USER });
 
     salonB = await createTestSalon({ name: 'GamingCenter B', slug: 'gamingCenter-b' });
     managerB = await createTestUser({ gamingCenterId: salonB.id, role: UserRole.MANAGER, phone: '09222222222' });
-    tokenManagerB = generateToken({ actorId: managerB.id, actorType: 'USER', gamingCenterId: salonB.id });
+    tokenManagerB = generateToken({ actorId: managerB.id, actorType: SessionActorType.USER });
 
     serviceA = await createTestService({ gamingCenterId: salonA.id });
 
-    bookingA1 = await createTestBooking({ gamingCenterId: salonA.id, stationId: serviceA.id, staffId: staffA1.id });
-    bookingA2 = await createTestBooking({ gamingCenterId: salonA.id, stationId: serviceA.id, staffId: staffA2.id, startTime: new Date(Date.now() + 60 * 60 * 1000) });
+    const customerA = await prisma.customerAccount.create({ data: { phone: '09120000001' } });
+    const customerProfileA = await prisma.customerProfile.create({ data: { gamingCenterId: salonA.id, customerAccountId: customerA.id } });
+
+    bookingA1 = await createTestReservation(salonA.id, customerA.id, customerProfileA.id, serviceA.id, staffA1.id);
+    bookingA2 = await createTestReservation(salonA.id, customerA.id, customerProfileA.id, serviceA.id, staffA2.id, { startTime: new Date(Date.now() + 60 * 60 * 1000) });
   });
 
   afterAll(async () => {
+    await prisma.gamingSession.deleteMany({});
     await prisma.reservation.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
     await prisma.gameStation.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.customerProfile.deleteMany({});

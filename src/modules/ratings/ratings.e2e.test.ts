@@ -2,7 +2,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { GamingCenter, User, UserRole, ReservationStatus, RatingTarget, RatingStatus } from '@prisma/client';
+import { GamingCenter, User, UserRole, ReservationStatus, RatingStatus, GameStationType, SessionActorType } from '@prisma/client';
 import { createTestUser, createTestSalon, generateToken } from '../../common/utils/test-utils';
 
 describe('Rating Routes', () => {
@@ -15,9 +15,20 @@ describe('Rating Routes', () => {
 
   beforeAll(async () => {
     await prisma.$connect();
+
+    // Cleanup
+    await prisma.rating.deleteMany({});
+    await prisma.gamingSession.deleteMany({});
+    await prisma.reservation.deleteMany({});
+    await prisma.customerProfile.deleteMany({});
+    await prisma.customerAccount.deleteMany({});
+    await prisma.gameStation.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.gamingCenter.deleteMany({});
+
     gamingCenter = await createTestSalon();
     manager = await createTestUser({ gamingCenterId: gamingCenter.id, role: UserRole.MANAGER });
-    managerToken = generateToken({ actorId: manager.id, actorType: 'USER' });
+    managerToken = generateToken({ actorId: manager.id, actorType: SessionActorType.USER });
 
     customerAccount = await prisma.customerAccount.create({
       data: { phone: '09129998877', fullName: 'John Doe' }
@@ -31,29 +42,32 @@ describe('Rating Routes', () => {
       }
     });
 
+    const station = await prisma.gameStation.create({
+        data: {
+          gamingCenterId: gamingCenter.id,
+          name: 'Test GameStation',
+          stationType: GameStationType.PC,
+          hourlyPrice: 1000,
+        }
+    });
+
     reservation = await prisma.reservation.create({
       data: {
         gamingCenterId: gamingCenter.id,
         customerProfileId: profile.id,
         customerAccountId: customerAccount.id,
-        stationId: (await prisma.gameStation.create({
-          data: {
-            gamingCenterId: gamingCenter.id,
-            name: 'Test GameStation',
-            durationMinutes: 30,
-            price: 1000,
-            currency: 'IRR'
-          }
-        })).id,
+        stationId: station.id,
         staffId: manager.id,
         createdByUserId: manager.id,
         startTime: new Date(),
-        endTime: new Date(Date.now() + 30 * 60000),
-        (stationSnapshot as any): 'Test GameStation',
-        (stationSnapshot as any): 30,
-        (stationSnapshot as any): 1000,
-        (stationSnapshot as any): 'IRR',
+        endTime: new Date(Date.now() + 60 * 60000),
+        stationSnapshot: {
+          name: station.name,
+          hourlyPrice: station.hourlyPrice,
+          stationType: station.stationType,
+        },
         totalPrice: 1000,
+        totalHours: 1,
         status: ReservationStatus.COMPLETED,
       }
     });
@@ -61,6 +75,7 @@ describe('Rating Routes', () => {
 
   afterAll(async () => {
     await prisma.rating.deleteMany({});
+    await prisma.gamingSession.deleteMany({});
     await prisma.reservation.deleteMany({});
     await prisma.customerProfile.deleteMany({});
     await prisma.customerAccount.deleteMany({});
@@ -73,8 +88,6 @@ describe('Rating Routes', () => {
   describe('POST /public/gamingCenters/:salonSlug/reservations/:reservationId/ratings', () => {
     it('should submit a rating and return 201', async () => {
       const reviewPayload = {
-        reservationId: reservation.id,
-        target: RatingTarget.SALON,
         rating: 5,
         comment: 'Great station!',
       };
@@ -90,12 +103,18 @@ describe('Rating Routes', () => {
 
     it('should return 400 if reservation is not COMPLETED', async () => {
       const pendingBooking = await prisma.reservation.create({
-        data: { ...reservation, id: undefined, status: ReservationStatus.PENDING } as any // eslint-disable-line @typescript-eslint/no-explicit-any
+        data: {
+            ...reservation,
+            id: undefined,
+            status: ReservationStatus.PENDING,
+            createdAt: undefined,
+            updatedAt: undefined
+        } as any // eslint-disable-line @typescript-eslint/no-explicit-any
       });
 
       const res = await request(app)
         .post(`/api/v1/public/gamingCenters/${gamingCenter.slug}/reservations/${pendingBooking.id}/ratings`)
-        .send({ reservationId: pendingBooking.id, target: RatingTarget.SALON, rating: 5 });
+        .send({ rating: 5 });
 
       expect(res.status).toBe(httpStatus.BAD_REQUEST);
     });

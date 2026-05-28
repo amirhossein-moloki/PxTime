@@ -1,29 +1,38 @@
 import { z } from 'zod';
+import { GameStationType } from '@prisma/client';
 import { baseFilterSchema } from '../../common/validators/query.validators';
 
 // Base schema for common fields
 const serviceBaseSchema = {
   name: z.string().min(1, 'Name is required'),
-  durationMinutes: z.number().int().positive('Duration must be a positive integer'),
-  price: z.number().int().min(0, 'Price cannot be negative'),
-  currency: z.string().length(3, 'Currency must be a 3-letter code'),
+  stationType: z.nativeEnum(GameStationType).default(GameStationType.PC),
+  hourlyPrice: z.number().min(0, 'Hourly price cannot be negative'),
+  minRentHours: z.number().int().positive().default(1),
+  maxRentHours: z.number().int().positive().default(8),
+  defaultDurationHours: z.number().int().positive().default(1),
+  incrementMinutes: z.number().int().positive().default(30),
+  isVip: z.boolean().optional(),
   isActive: z.boolean().optional(),
 };
 
 // Schema for creating a new station
-export const createServiceSchema = z.object({
+export const createStationSchema = z.object({
   body: z.object({
     ...serviceBaseSchema,
   }),
 });
 
 // Schema for updating an existing station
-export const updateServiceSchema = z.object({
+export const updateStationSchema = z.object({
   body: z.object({
     name: serviceBaseSchema.name.optional(),
-    durationMinutes: serviceBaseSchema.durationMinutes.optional(),
-    price: serviceBaseSchema.price.optional(),
-    currency: serviceBaseSchema.currency.optional(),
+    stationType: z.nativeEnum(GameStationType).optional(),
+    hourlyPrice: serviceBaseSchema.hourlyPrice.optional(),
+    minRentHours: serviceBaseSchema.minRentHours.optional(),
+    maxRentHours: serviceBaseSchema.maxRentHours.optional(),
+    defaultDurationHours: serviceBaseSchema.defaultDurationHours.optional(),
+    incrementMinutes: serviceBaseSchema.incrementMinutes.optional(),
+    isVip: serviceBaseSchema.isVip.optional(),
     isActive: serviceBaseSchema.isActive.optional(),
   }),
   params: z.object({
@@ -34,8 +43,8 @@ export const updateServiceSchema = z.object({
 export const listServicesSchema = baseFilterSchema.extend({
   minPrice: z.coerce.number().optional(),
   maxPrice: z.coerce.number().optional(),
-  minDuration: z.coerce.number().optional(),
-  maxDuration: z.coerce.number().optional(),
+  stationType: z.nativeEnum(GameStationType).optional(),
+  isVip: z.coerce.boolean().optional(),
   staffId: z.string().optional(),
 });
 

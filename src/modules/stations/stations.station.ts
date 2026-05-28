@@ -63,7 +63,7 @@ export async function updateStation(
   const updatedService = await StationRepo.updateStation(stationId, gamingCenterId, data);
 
   // Log if price changed
-  if (data.price !== undefined && data.price !== oldService.hourlyPrice) {
+  if (data.hourlyPrice !== undefined && data.hourlyPrice !== oldService.hourlyPrice) {
     await auditService.log(
       gamingCenterId,
       actor,

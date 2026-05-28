@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import AppError from '../../common/errors/AppError';
 import httpStatus from 'http-status';
-import * as UploadService from '../../common/stations/upload.station';
+import * as UploadService from '../../common/services/upload.station';
 import * as MediaService from './media.station';
 
 export async function uploadMedia(

@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { gamingCenterService } from './gamingCenter.station';
 import { createSalonSchema, updateSalonSchema, listSalonsSchema } from './gamingCenter.validation';
 
-export const gamingCenterController = {
+export const salonController = {
   async createSalon(req: Request, res: Response, next: NextFunction) {
     try {
       const validatedData = createSalonSchema.parse(req.body);

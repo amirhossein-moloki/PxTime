@@ -4,7 +4,7 @@ import { Prisma } from '@prisma/client';
 import { ListSalonsQuery } from './gamingCenter.validation';
 import { getPaginationParams, formatPaginatedResult } from '../../common/utils/pagination';
 
-export const gamingCenterRepository = {
+export const salonRepository = {
   async create(data: CreateSalonInput) {
     return prisma.gamingCenter.create({
       data: data as Prisma.GamingCenterCreateInput,

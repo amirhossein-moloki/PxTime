@@ -2,8 +2,8 @@ import request from 'supertest';
 import cuid from 'cuid';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { UserRole } from '@prisma/client';
-import { createTestSalon, createTestUser, createTestService, createTestBooking, generateToken } from '../../common/utils/test-utils';
+import { UserRole, SessionActorType } from '@prisma/client';
+import { createTestSalon, createTestUser, createTestService, createTestReservation, generateToken } from '../../common/utils/test-utils';
 import { IdempotencyRepo } from '../../common/repositories/idempotency.repo';
 
 describe('Payments Idempotency E2E', () => {
@@ -14,11 +14,15 @@ describe('Payments Idempotency E2E', () => {
 
   beforeEach(async () => {
     // Clean up the database before each test
-    await prisma.payment.deleteMany();
-    await prisma.reservation.deleteMany();
-    await prisma.gameStation.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.gamingCenter.deleteMany();
+    await prisma.gamingSession.deleteMany({});
+    await prisma.payment.deleteMany({});
+    await prisma.reservation.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
+    await prisma.gameStation.deleteMany({});
+    await prisma.user.deleteMany({});
+    await prisma.customerProfile.deleteMany({});
+    await prisma.customerAccount.deleteMany({});
+    await prisma.gamingCenter.deleteMany({});
     await IdempotencyRepo.clearAll();
 
     const gamingCenter = await createTestSalon();
@@ -26,10 +30,14 @@ describe('Payments Idempotency E2E', () => {
 
     const user = await createTestUser({ gamingCenterId, role: UserRole.MANAGER });
     userId = user.id;
-    token = generateToken({ userId: user.id, gamingCenterId: gamingCenter.id, role: user.role });
+    token = generateToken({ actorId: user.id, actorType: SessionActorType.USER });
 
     const station = await createTestService({ gamingCenterId });
-    const reservation = await createTestBooking({ gamingCenterId, stationId: station.id, staffId: userId });
+
+    const customerAccount = await prisma.customerAccount.create({ data: { phone: '09120000001' } });
+    const customerProfile = await prisma.customerProfile.create({ data: { gamingCenterId, customerAccountId: customerAccount.id } });
+
+    const reservation = await createTestReservation(gamingCenterId, customerAccount.id, customerProfile.id, station.id, userId);
     reservationId = reservation.id;
   });
 

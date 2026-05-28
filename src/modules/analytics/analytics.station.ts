@@ -9,24 +9,24 @@ export const AnalyticsService = {
       AnalyticsRepo.getNewCustomersCount(gamingCenterId, startDate, endDate),
     ]);
 
-    const totalBookings = stats.totalBookings || 0;
-    const completedBookings = stats.completedBookings || 0;
-    const canceledBookings = stats.canceledBookings || 0;
-    const totalRevenue = stats.revenue || 0;
+    const totalReservations = stats?.totalReservations || 0;
+    const completedReservations = stats?.completedReservations || 0;
+    const canceledReservations = stats?.canceledReservations || 0;
+    const totalRevenue = stats?.revenue || 0;
 
     const completionRate =
-      totalBookings > 0
-        ? (completedBookings / (totalBookings - canceledBookings || 1)) * 100
+      totalReservations > 0
+        ? (completedReservations / (totalReservations - canceledReservations || 1)) * 100
         : 0;
 
-    const averageBookingValue = completedBookings > 0 ? totalRevenue / completedBookings : 0;
+    const averageBookingValue = completedReservations > 0 ? totalRevenue / completedReservations : 0;
 
     return {
       totalRevenue,
-      realizedCash: stats.realizedCash || 0,
-      totalBookings,
-      completedBookings,
-      canceledBookings,
+      realizedCash: stats?.realizedCash || 0,
+      totalBookings: totalReservations,
+      completedBookings: completedReservations,
+      canceledBookings: canceledReservations,
       completionRate: Math.round(completionRate * 100) / 100,
       averageBookingValue: Math.round(averageBookingValue),
       newCustomers,
@@ -42,14 +42,14 @@ export const AnalyticsService = {
     const performance = staffList.map((staff) => {
       const stats = staffStats.find((s) => s.staffId === staff.id);
       const revenue = stats?._sum?.revenue || 0;
-      const completedBookings = stats?._sum?.completedBookings || 0;
+      const completedReservations = stats?._sum?.completedReservations || 0;
       const totalRating = stats?._sum?.totalRating || 0;
       const ratingCount = stats?._sum?.ratingCount || 0;
 
       return {
         staffId: staff.id,
         staffName: staff.fullName,
-        bookingsCount: completedBookings,
+        bookingsCount: completedReservations,
         revenue,
         averageRating: ratingCount > 0 ? Math.round((totalRating / ratingCount) * 10) / 10 : 0,
       };
@@ -67,12 +67,12 @@ export const AnalyticsService = {
     const performance = servicesList.map((station) => {
       const stats = serviceStats.find((s) => s.stationId === station.id);
       const revenue = stats?._sum?.revenue || 0;
-      const completedBookings = stats?._sum?.completedBookings || 0;
+      const completedReservations = stats?._sum?.completedReservations || 0;
 
       return {
         stationId: station.id,
         serviceName: station.name,
-        bookingsCount: completedBookings,
+        bookingsCount: completedReservations,
         revenue,
       };
     });

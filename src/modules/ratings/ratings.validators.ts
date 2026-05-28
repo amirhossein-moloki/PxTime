@@ -1,10 +1,9 @@
 import { z } from 'zod';
-import { RatingStatus, RatingTarget } from '@prisma/client';
+import { RatingStatus } from '@prisma/client';
 
 export const submitReviewSchema = z.object({
   body: z.object({
     reservationId: z.string().cuid(),
-    target: z.nativeEnum(RatingTarget),
     stationId: z.string().cuid().optional(),
     rating: z.number().min(1).max(5),
     comment: z.string().optional(),

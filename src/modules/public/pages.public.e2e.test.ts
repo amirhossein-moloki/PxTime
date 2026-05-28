@@ -10,8 +10,8 @@ describe('GET /api/v1/public/gamingCenters/:salonSlug/pages/:pageSlug', () => {
   let draftPage: { id: string; slug: string };
 
   beforeAll(async () => {
-    await prisma.salonPageSlugHistory.deleteMany();
-    await prisma.salonPageSection.deleteMany();
+    await prisma.pageSlugHistory.deleteMany();
+    await prisma.pageSection.deleteMany();
     await prisma.page.deleteMany();
     await prisma.gamingCenter.deleteMany();
 
@@ -102,14 +102,14 @@ describe('GET /api/v1/public/gamingCenters/:salonSlug/pages/:pageSlug', () => {
       },
     });
 
-    await prisma.salonPageSlugHistory.create({
+    await prisma.pageSlugHistory.create({
       data: {
         pageId: page.id,
         oldSlug: 'about-old',
       },
     });
 
-    await prisma.salonPageSlugHistory.create({
+    await prisma.pageSlugHistory.create({
       data: {
         pageId: draftPage.id,
         oldSlug: 'draft-old',
@@ -118,8 +118,8 @@ describe('GET /api/v1/public/gamingCenters/:salonSlug/pages/:pageSlug', () => {
   });
 
   afterAll(async () => {
-    await prisma.salonPageSlugHistory.deleteMany();
-    await prisma.salonPageSection.deleteMany();
+    await prisma.pageSlugHistory.deleteMany();
+    await prisma.pageSection.deleteMany();
     await prisma.page.deleteMany();
     await prisma.gamingCenter.deleteMany();
     await prisma.$disconnect();

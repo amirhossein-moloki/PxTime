@@ -1,8 +1,7 @@
-
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { User, GamingCenter } from '@prisma/client';
+import { User, GamingCenter, GameStationType, SessionActorType } from '@prisma/client';
 import { createTestSalon, createTestUser, generateToken as createToken } from '../../common/utils/test-utils';
 
 describe('Negative Permission (RBAC) E2E Tests', () => {
@@ -20,9 +19,9 @@ describe('Negative Permission (RBAC) E2E Tests', () => {
     receptionist = await createTestUser({ gamingCenterId: gamingCenter.id, role: 'SUPERVISOR' });
     staff = await createTestUser({ gamingCenterId: gamingCenter.id, role: 'STAFF' });
 
-    _managerToken = createToken({ actorId: manager.id, actorType: 'USER' });
-    receptionistToken = createToken({ actorId: receptionist.id, actorType: 'USER' });
-    staffToken = createToken({ actorId: staff.id, actorType: 'USER' });
+    _managerToken = createToken({ actorId: manager.id, actorType: SessionActorType.USER });
+    receptionistToken = createToken({ actorId: receptionist.id, actorType: SessionActorType.USER });
+    staffToken = createToken({ actorId: staff.id, actorType: SessionActorType.USER });
   });
 
   afterAll(async () => {
@@ -60,9 +59,8 @@ describe('Negative Permission (RBAC) E2E Tests', () => {
         .set('Authorization', `Bearer ${receptionistToken}`)
         .send({
           name: 'New GameStation',
-          durationMinutes: 30,
-          price: 10000,
-          currency: 'IRR',
+          stationType: GameStationType.PC,
+          hourlyPrice: 10000,
         });
       expect(response.status).toBe(403);
     });

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { createServiceSchema, updateServiceSchema } from './stations.validators';
+import { createStationSchema, updateStationSchema } from './stations.validators';
 
 // Type for the body of the create station request
-export type CreateServiceInput = z.infer<typeof createServiceSchema>['body'];
+export type CreateServiceInput = z.infer<typeof createStationSchema>['body'];
 
 // Type for the body of the update station request
-export type UpdateServiceInput = z.infer<typeof updateServiceSchema>['body'];
+export type UpdateServiceInput = z.infer<typeof updateStationSchema>['body'];

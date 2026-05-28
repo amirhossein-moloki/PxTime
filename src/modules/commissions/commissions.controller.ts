@@ -23,11 +23,11 @@ export const upsertPolicy = async (
   res.ok(policy);
 };
 
-export const listCommissions = async (
+export const listEarnings = async (
   req: AppRequest,
   res: Response
 ) => {
-  const result = await commissionsService.listCommissions(req.tenant.gamingCenterId, req.query);
+  const result = await commissionsService.listEarnings(req.tenant.gamingCenterId, req.query);
   res.ok(result.data, { pagination: result.meta });
 };
 

@@ -5,7 +5,7 @@ import { CommissionStatus, CommissionPaymentStatus, SessionActorType, Reservatio
 jest.mock('../commissions.repo');
 jest.mock('../../audit/audit.station');
 
-describe('Commissions GameStation', () => {
+describe('Commissions Logic', () => {
   describe('payCommission', () => {
     const gamingCenterId = 'gamingCenter-1';
     const earningId = 'comm-1';
@@ -31,13 +31,13 @@ describe('Commissions GameStation', () => {
       };
 
       (CommissionsRepo.findCommissionById as jest.Mock).mockResolvedValue(mockCommission);
-      (CommissionsRepo.createCommissionPayment as jest.Mock).mockResolvedValue({ id: 'pay-1', ...input });
-      (CommissionsRepo.findCommissionPayments as jest.Mock).mockResolvedValue([{ amount: 1000 }]);
+      (CommissionsRepo.createEarningPayment as jest.Mock).mockResolvedValue({ id: 'pay-1', ...input });
+      (CommissionsRepo.findEarningPayments as jest.Mock).mockResolvedValue([{ amount: 1000 }]);
       (CommissionsRepo.transaction as jest.Mock).mockImplementation((cb) => cb({}));
 
       const result = await commissionsService.payCommission(earningId, gamingCenterId, input, actor);
 
-      expect(CommissionsRepo.createCommissionPayment).toHaveBeenCalledWith(
+      expect(CommissionsRepo.createEarningPayment).toHaveBeenCalledWith(
         expect.objectContaining({
           earningId,
           amount: input.amount,
@@ -46,7 +46,7 @@ describe('Commissions GameStation', () => {
         expect.anything()
       );
 
-      expect(CommissionsRepo.updateBookingCommission).toHaveBeenCalledWith(
+      expect(CommissionsRepo.updateEarning).toHaveBeenCalledWith(
         earningId,
         expect.objectContaining({ status: CommissionStatus.CHARGED }),
         expect.anything()
@@ -93,7 +93,9 @@ describe('Commissions GameStation', () => {
         id: reservationId,
         gamingCenterId,
         totalPrice: 10000,
-        (stationSnapshot as any): 'IRR',
+        stationSnapshot: {
+          currency: 'IRR',
+        },
         source: ReservationSource.ONLINE,
         paymentState: ReservationPaymentState.UNPAID,
         payments: [],
@@ -105,23 +107,24 @@ describe('Commissions GameStation', () => {
         percentBps: 500, // 5%
         isActive: true,
         applyToOnlineOnly: true,
+        currency: 'IRR',
       };
 
-      (CommissionsRepo.findBookingForCommission as jest.Mock).mockResolvedValue(mockBooking);
+      (CommissionsRepo.findReservationForEarning as jest.Mock).mockResolvedValue(mockBooking);
       (CommissionsRepo.findPolicyBySalonId as jest.Mock).mockResolvedValue(mockPolicy);
-      (CommissionsRepo.createBookingCommission as jest.Mock).mockResolvedValue({ id: 'comm-1', commissionAmount: 500 });
+      (CommissionsRepo.createEarning as jest.Mock).mockResolvedValue({ id: 'comm-1', commissionAmount: 500 });
       (CommissionsRepo.transaction as jest.Mock).mockImplementation((cb) => cb({}));
 
       await commissionsService.calculateCommission(reservationId);
 
-      expect(CommissionsRepo.createBookingCommission).toHaveBeenCalledWith(
+      expect(CommissionsRepo.createEarning).toHaveBeenCalledWith(
         expect.objectContaining({
           status: CommissionStatus.PENDING,
           commissionAmount: 500,
         }),
         expect.anything()
       );
-      expect(CommissionsRepo.createCommissionPayment).not.toHaveBeenCalled();
+      expect(CommissionsRepo.createEarningPayment).not.toHaveBeenCalled();
     });
 
     it('should calculate and create a CHARGED commission for a PAID online reservation', async () => {
@@ -129,7 +132,9 @@ describe('Commissions GameStation', () => {
         id: reservationId,
         gamingCenterId,
         totalPrice: 10000,
-        (stationSnapshot as any): 'IRR',
+        stationSnapshot: {
+          currency: 'IRR',
+        },
         source: ReservationSource.ONLINE,
         paymentState: ReservationPaymentState.PAID,
         payments: [{ provider: PaymentProvider.ZARINPAL, status: 'PAID' }],
@@ -141,16 +146,17 @@ describe('Commissions GameStation', () => {
         percentBps: 500, // 5%
         isActive: true,
         applyToOnlineOnly: true,
+        currency: 'IRR',
       };
 
-      (CommissionsRepo.findBookingForCommission as jest.Mock).mockResolvedValue(mockBooking);
+      (CommissionsRepo.findReservationForEarning as jest.Mock).mockResolvedValue(mockBooking);
       (CommissionsRepo.findPolicyBySalonId as jest.Mock).mockResolvedValue(mockPolicy);
-      (CommissionsRepo.createBookingCommission as jest.Mock).mockResolvedValue({ id: 'comm-1', commissionAmount: 500 });
+      (CommissionsRepo.createEarning as jest.Mock).mockResolvedValue({ id: 'comm-1', commissionAmount: 500 });
       (CommissionsRepo.transaction as jest.Mock).mockImplementation((cb) => cb({}));
 
       await commissionsService.calculateCommission(reservationId);
 
-      expect(CommissionsRepo.createBookingCommission).toHaveBeenCalledWith(
+      expect(CommissionsRepo.createEarning).toHaveBeenCalledWith(
         expect.objectContaining({
           status: CommissionStatus.CHARGED,
           commissionAmount: 500,
@@ -158,7 +164,7 @@ describe('Commissions GameStation', () => {
         expect.anything()
       );
 
-      expect(CommissionsRepo.createCommissionPayment).toHaveBeenCalledWith(
+      expect(CommissionsRepo.createEarningPayment).toHaveBeenCalledWith(
         expect.objectContaining({
           amount: 500,
           status: CommissionPaymentStatus.PAID,
@@ -172,7 +178,9 @@ describe('Commissions GameStation', () => {
         id: reservationId,
         gamingCenterId,
         totalPrice: 10000,
-        (stationSnapshot as any): 'IRR',
+        stationSnapshot: {
+          currency: 'IRR',
+        },
         source: ReservationSource.WALK_IN,
         paymentState: ReservationPaymentState.UNPAID,
         payments: [],
@@ -184,16 +192,17 @@ describe('Commissions GameStation', () => {
         percentBps: 500,
         isActive: true,
         applyToOnlineOnly: true,
+        currency: 'IRR',
       };
 
-      (CommissionsRepo.findBookingForCommission as jest.Mock).mockResolvedValue(mockBooking);
+      (CommissionsRepo.findReservationForEarning as jest.Mock).mockResolvedValue(mockBooking);
       (CommissionsRepo.findPolicyBySalonId as jest.Mock).mockResolvedValue(mockPolicy);
       (CommissionsRepo.transaction as jest.Mock).mockImplementation((cb) => cb({}));
 
       const result = await commissionsService.calculateCommission(reservationId);
 
       expect(result).toBeNull();
-      expect(CommissionsRepo.createBookingCommission).not.toHaveBeenCalled();
+      expect(CommissionsRepo.createEarning).not.toHaveBeenCalled();
     });
   });
 });

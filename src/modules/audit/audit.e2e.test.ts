@@ -5,11 +5,11 @@ import { prisma } from '../../config/prisma';
 import {
   createTestSalon,
   createTestUser,
-  createTestBooking,
+  createTestReservation,
   createTestService,
   generateToken,
 } from '../../common/utils/test-utils';
-import { ReservationStatus, UserRole } from '@prisma/client';
+import { ReservationStatus, UserRole, SessionActorType } from '@prisma/client';
 
 describe('Audit Logging E2E', () => {
   let gamingCenter: any; // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -21,10 +21,10 @@ describe('Audit Logging E2E', () => {
   beforeAll(async () => {
     gamingCenter = await createTestSalon({ name: 'Audit GamingCenter', slug: 'audit-gamingCenter' });
     manager = await createTestUser({ gamingCenterId: gamingCenter.id, role: UserRole.MANAGER });
-    managerToken = generateToken({ actorId: manager.id, actorType: 'USER', sessionId: 'test-session-id' });
+    managerToken = generateToken({ actorId: manager.id, actorType: SessionActorType.USER, sessionId: 'test-session-id' });
 
     staff = await createTestUser({ gamingCenterId: gamingCenter.id, role: UserRole.STAFF });
-    staffToken = generateToken({ actorId: staff.id, actorType: 'USER', sessionId: 'test-session-id' });
+    staffToken = generateToken({ actorId: staff.id, actorType: SessionActorType.USER, sessionId: 'test-session-id' });
   });
 
   afterAll(async () => {
@@ -36,11 +36,21 @@ describe('Audit Logging E2E', () => {
 
   it('should generate an audit log when a reservation is canceled', async () => {
     const station = await createTestService({ gamingCenterId: gamingCenter.id });
-    const reservation = await createTestBooking({
-      gamingCenterId: gamingCenter.id,
-      stationId: station.id,
-      staffId: staff.id,
+
+    const customerAccount = await prisma.customerAccount.create({
+        data: { phone: '09120000001', fullName: 'Jane Doe' }
     });
+    const customerProfile = await prisma.customerProfile.create({
+        data: { gamingCenterId: gamingCenter.id, customerAccountId: customerAccount.id }
+    });
+
+    const reservation = await createTestReservation(
+      gamingCenter.id,
+      customerAccount.id,
+      customerProfile.id,
+      station.id,
+      staff.id
+    );
 
     // Cancel the reservation
     const response = await request(app)
@@ -60,7 +70,7 @@ describe('Audit Logging E2E', () => {
     });
 
     expect(auditLog).toBeDefined();
-    expect(auditLog?.actorId).toBe(manager.id);
+    expect(auditLog?.userId).toBe(manager.id);
     expect((auditLog?.newData as any).status).toBe(ReservationStatus.CANCELED); // eslint-disable-line @typescript-eslint/no-explicit-any
   });
 

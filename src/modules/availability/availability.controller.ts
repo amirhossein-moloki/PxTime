@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 // We need a schema for URL params as well
 const paramsSchema = z.object({
-  gamingCenterSlug: z.string(),
+  salonSlug: z.string(),
 });
 
 export const getAvailability = async (
@@ -14,10 +14,10 @@ export const getAvailability = async (
   next: NextFunction
 ) => {
   try {
-    const { gamingCenterSlug } = paramsSchema.parse(req.params);
+    const { salonSlug } = paramsSchema.parse(req.params);
     const query = getAvailabilityQuerySchema.parse(req.query);
 
-    const slots = await getAvailableSlots({ ...query, gamingCenterSlug });
+    const slots = await getAvailableSlots({ ...query, salonSlug });
 
     res.ok(slots);
   } catch (error) {

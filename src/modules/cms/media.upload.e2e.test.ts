@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, SessionActorType } from '@prisma/client';
 import app from '../../app';
 import { generateToken } from '../../common/utils/test-utils';
 import path from 'path';
@@ -43,9 +43,8 @@ describe('Media Upload E2E', () => {
     });
 
     token = generateToken({
-      userId: manager.id,
-      gamingCenterId: gamingCenter.id,
-      role: UserRole.MANAGER,
+      actorId: manager.id,
+      actorType: SessionActorType.USER,
     });
   });
 

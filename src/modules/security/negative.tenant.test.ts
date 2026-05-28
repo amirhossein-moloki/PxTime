@@ -1,8 +1,7 @@
-
 import request from 'supertest';
 import app from '../../app';
 import { prisma } from '../../config/prisma';
-import { User, GamingCenter, GameStation } from '@prisma/client';
+import { User, GamingCenter, GameStation, GameStationType, SessionActorType } from '@prisma/client';
 import { createTestSalon, createTestUser, createTestService, generateToken as createToken } from '../../common/utils/test-utils';
 
 describe('Negative Tenant Isolation E2E Tests', () => {
@@ -23,11 +22,11 @@ describe('Negative Tenant Isolation E2E Tests', () => {
     // Resource belonging to GamingCenter B
     serviceB = await createTestService({ gamingCenterId: salonB.id });
 
-    tokenA = createToken({ actorId: managerA.id, actorType: 'USER' });
+    tokenA = createToken({ actorId: managerA.id, actorType: SessionActorType.USER });
   });
 
   afterAll(async () => {
-    await prisma.userService.deleteMany({});
+    await prisma.staffStationSkill.deleteMany({});
     await prisma.gameStation.deleteMany({});
     await prisma.user.deleteMany({});
     await prisma.gamingCenter.deleteMany({});
@@ -56,9 +55,8 @@ describe('Negative Tenant Isolation E2E Tests', () => {
       .set('Authorization', `Bearer ${tokenA}`)
       .send({
         name: 'Cross-Tenant GameStation',
-        durationMinutes: 60,
-        price: 50000,
-        currency: 'IRR',
+        stationType: GameStationType.PC,
+        hourlyPrice: 50000,
       });
 
     expect(response.status).toBe(404);

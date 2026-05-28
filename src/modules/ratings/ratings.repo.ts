@@ -8,7 +8,6 @@ export async function createReview(gamingCenterId: string, customerAccountId: st
       gamingCenterId,
       customerAccountId,
       reservationId: input.reservationId,
-      target: input.target,
       stationId: input.stationId,
       rating: input.rating,
       comment: input.comment,
