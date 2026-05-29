@@ -10,6 +10,7 @@ The authoritative documentation lives in `docs/` and is generated from the curre
 - `docs/architecture.md` — system structure and project map
 - `docs/database.md` — Prisma models, enums, and relationships
 - `docs/api.md` — route-by-route API reference
+- `docs/API_GUIDE_FA.md` — راهنمای فارسی API (Persian API Guide)
 - `docs/auth.md` — OTP/session auth flow
 - `docs/cms-seo.md` — CMS and SEO behavior
 - `docs/payments-commission-webhooks.md` — payment flow, commission data model, webhooks
