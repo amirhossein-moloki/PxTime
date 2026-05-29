@@ -1,5 +1,4 @@
 import argon2 from 'argon2';
-import crypto from 'crypto';
 import { AuthRepository } from './auth.repository';
 import { generateAccessToken } from './auth.tokens';
 import { OtpPurpose, SessionActorType } from '@prisma/client';
@@ -7,24 +6,12 @@ import AppError from '../../common/errors/AppError';
 import httpStatus from 'http-status';
 import { env } from '../../config/env';
 import { queueSms } from '../../jobs/producers/sms.producer';
-
-const hashToken = (token: string) => {
-  return crypto.createHash('sha256').update(token).digest('hex');
-};
+import { generateSecureOtp, generateSecureToken, hashToken } from '../../common/utils/crypto';
 
 // OTP settings
 const OTP_EXPIRATION_MINUTES = 2;
 const OTP_LENGTH = 6;
 const OTP_POST_VERIFICATION_WINDOW_MINUTES = 5; // How long a user has to login after verifying OTP
-
-const generateNumericOtp = (length: number): string => {
-  const digits = '0123456789';
-  let otp = '';
-  for (let i = 0; i < length; i++) {
-    otp += digits[Math.floor(Math.random() * 10)];
-  }
-  return otp;
-};
 
 const getOtpTemplateId = (): number => {
   const templateId = env.SMSIR_OTP_TEMPLATE_ID;
@@ -38,7 +25,7 @@ const createAndSaveSession = async (actorId: string, actorType: SessionActorType
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   // 1. Generate a secure, random refresh token.
-  const refreshToken = crypto.randomBytes(32).toString('hex');
+  const refreshToken = generateSecureToken();
 
   // 2. Hash the refresh token for database storage.
   const tokenHash = hashToken(refreshToken);
@@ -80,7 +67,7 @@ export const AuthService = {
       throw new AppError('No user found with this phone number.', httpStatus.NOT_FOUND);
     }
 
-    const code = generateNumericOtp(OTP_LENGTH);
+    const code = generateSecureOtp(OTP_LENGTH);
     const codeHash = await argon2.hash(code);
     const expiresAt = new Date(Date.now() + OTP_EXPIRATION_MINUTES * 60 * 1000);
 
@@ -124,7 +111,7 @@ export const AuthService = {
   },
 
   async requestCustomerOtp(phone: string) {
-    const code = generateNumericOtp(OTP_LENGTH);
+    const code = generateSecureOtp(OTP_LENGTH);
     const codeHash = await argon2.hash(code);
     const expiresAt = new Date(Date.now() + OTP_EXPIRATION_MINUTES * 60 * 1000);
 

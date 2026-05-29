@@ -10,6 +10,7 @@ jest.mock('./auth.repository', () => ({
     findSessionByToken: jest.fn(),
     revokeSession: jest.fn(),
     findUsersWithSalons: jest.fn(),
+    createOtp: jest.fn(),
   },
 }));
 
@@ -18,13 +19,9 @@ jest.mock('argon2', () => ({
   hash: jest.fn(),
 }));
 
-jest.mock('../notifications/sms.station');
+jest.mock('../../jobs/producers/sms.producer');
 
 describe('AuthService', () => {
-  beforeEach(() => {
-    process.env.SMSIR_OTP_TEMPLATE_ID = '123';
-  });
-
   afterEach(() => {
     jest.clearAllMocks();
   });

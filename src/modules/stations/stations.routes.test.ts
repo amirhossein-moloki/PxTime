@@ -29,8 +29,8 @@ describe('Stations API E2E Tests', () => {
     });
 
     managerToken = generateToken({
-        actorId: testManager.id,
-        actorType: 'USER',
+      actorId: testManager.id,
+      actorType: 'USER',
     });
   });
 

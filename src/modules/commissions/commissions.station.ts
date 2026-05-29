@@ -70,7 +70,7 @@ export const commissionsService = {
       // 4. Calculate amount
       let commissionAmount = 0;
       const snapshot = reservation.stationSnapshot as any;
-      const commissionCurrency = snapshot?.currency || 'USD';
+      const _commissionCurrency = snapshot?.currency || 'USD';
 
       if (policy.type === CommissionType.PERCENT && policy.percentBps) {
         commissionAmount = Math.floor((reservation.totalPrice * policy.percentBps) / 10000);

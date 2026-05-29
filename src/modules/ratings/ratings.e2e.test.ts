@@ -43,12 +43,12 @@ describe('Rating Routes', () => {
     });
 
     const station = await prisma.gameStation.create({
-        data: {
-          gamingCenterId: gamingCenter.id,
-          name: 'Test GameStation',
-          stationType: GameStationType.PC,
-          hourlyPrice: 1000,
-        }
+      data: {
+        gamingCenterId: gamingCenter.id,
+        name: 'Test GameStation',
+        stationType: GameStationType.PC,
+        hourlyPrice: 1000,
+      }
     });
 
     reservation = await prisma.reservation.create({
@@ -104,11 +104,11 @@ describe('Rating Routes', () => {
     it('should return 400 if reservation is not COMPLETED', async () => {
       const pendingBooking = await prisma.reservation.create({
         data: {
-            ...reservation,
-            id: undefined,
-            status: ReservationStatus.PENDING,
-            createdAt: undefined,
-            updatedAt: undefined
+          ...reservation,
+          id: undefined,
+          status: ReservationStatus.PENDING,
+          createdAt: undefined,
+          updatedAt: undefined
         } as any // eslint-disable-line @typescript-eslint/no-explicit-any
       });
 
