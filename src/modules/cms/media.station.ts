@@ -48,5 +48,5 @@ export async function updateMedia(
 
   assertAltTextForPurpose(nextPurpose, nextAltText);
 
-  return MediaRepo.updateMedia(mediaId, data);
+  return MediaRepo.updateMedia(gamingCenterId, mediaId, data);
 }

@@ -104,13 +104,13 @@ export const createTestShift = (options: {
     endTime: string;
     shiftRole?: ShiftRole;
   }): Promise<StaffShift> => {
-    return prisma.staffShift.create({
-      data: {
-        ...options,
-        shiftRole: options.shiftRole || ShiftRole.HOST,
-      },
-    });
-  };
+  return prisma.staffShift.create({
+    data: {
+      ...options,
+      shiftRole: options.shiftRole || ShiftRole.HOST,
+    },
+  });
+};
 
 export const createTestPayment = (options: {
     gamingCenterId: string;
@@ -119,18 +119,18 @@ export const createTestPayment = (options: {
     status?: PaymentStatus;
     provider?: PaymentProvider;
   }): Promise<Payment> => {
-    return prisma.payment.create({
-      data: {
-        gamingCenterId: options.gamingCenterId,
-        reservationId: options.reservationId,
-        amount: options.amount || 1000,
-        currency: 'IRR',
-        status: options.status || PaymentStatus.PENDING,
-        provider: options.provider || PaymentProvider.MANUAL,
-        method: PaymentMethod.ONLINE,
-      },
-    });
-  };
+  return prisma.payment.create({
+    data: {
+      gamingCenterId: options.gamingCenterId,
+      reservationId: options.reservationId,
+      amount: options.amount || 1000,
+      currency: 'IRR',
+      status: options.status || PaymentStatus.PENDING,
+      provider: options.provider || PaymentProvider.MANUAL,
+      method: PaymentMethod.ONLINE,
+    },
+  });
+};
 
 export const generateToken = (payload: { actorId: string; actorType: SessionActorType | string; sessionId?: string }): string => {
   return jwt.sign(

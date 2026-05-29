@@ -38,10 +38,10 @@ describe('Audit Logging E2E', () => {
     const station = await createTestService({ gamingCenterId: gamingCenter.id });
 
     const customerAccount = await prisma.customerAccount.create({
-        data: { phone: '09120000001', fullName: 'Jane Doe' }
+      data: { phone: '09120000001', fullName: 'Jane Doe' }
     });
     const customerProfile = await prisma.customerProfile.create({
-        data: { gamingCenterId: gamingCenter.id, customerAccountId: customerAccount.id }
+      data: { gamingCenterId: gamingCenter.id, customerAccountId: customerAccount.id }
     });
 
     const reservation = await createTestReservation(

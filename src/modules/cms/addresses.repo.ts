@@ -24,16 +24,19 @@ export const AddressesRepo = {
     });
   },
 
-  async update(id: string, data: any): Promise<Address> {
-    return prisma.address.update({
-      where: { id },
+  async update(id: string, gamingCenterId: string, data: any): Promise<Address | null> {
+    const result = await prisma.address.updateMany({
+      where: { id, gamingCenterId },
       data,
     });
+    if (result.count === 0) return null;
+    return prisma.address.findUnique({ where: { id } });
   },
 
-  async delete(id: string): Promise<Address> {
-    return prisma.address.delete({
-      where: { id },
+  async delete(id: string, gamingCenterId: string): Promise<boolean> {
+    const result = await prisma.address.deleteMany({
+      where: { id, gamingCenterId },
     });
+    return result.count > 0;
   },
 };

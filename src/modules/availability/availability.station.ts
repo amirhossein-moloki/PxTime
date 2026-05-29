@@ -52,8 +52,8 @@ export const getAvailableSlots = async (
   const staffIds = staffToCheck.map(s => s.id);
 
   // 3. Fetch all relevant staffShifts and reservations in one go
-  const staffShifts = await AvailabilityRepo.findShifts(staffIds);
-  const reservations = await AvailabilityRepo.findBookings(staffIds, startDate, endDate);
+  const staffShifts = await AvailabilityRepo.findShifts(gamingCenterId, staffIds);
+  const reservations = await AvailabilityRepo.findBookings(gamingCenterId, staffIds, startDate, endDate);
 
   // --- Core Logic: Generate and Filter Slots ---
   const availableSlots: TimeSlot[] = [];

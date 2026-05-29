@@ -6,49 +6,92 @@ import { AnalyticsRepo } from '../src/modules/analytics/analytics.repo';
 async function backfill() {
   console.log('Starting backfill of analytics summary tables...');
 
-  // 1. Get all unique (gamingCenterId, date) combinations from Bookings
-  const bookingDates = await prisma.$queryRaw<any[]>` // eslint-disable-line @typescript-eslint/no-explicit-any
-    SELECT DISTINCT "gamingCenterId", "startTime"::date as date
-    FROM "Reservation"
-  `;
+  // 1. Get all unique (gamingCenterId, date) combinations from Reservations
+  const reservationGroups = await prisma.reservation.groupBy({
+    by: ['gamingCenterId', 'startTime'],
+  });
 
-  console.log(`Found ${bookingDates.length} unique gamingCenter-date pairs to sync from Bookings.`);
-
-  for (const pair of bookingDates) {
-    const date = new Date(pair.date);
-    console.log(`Syncing stats for GamingCenter: ${pair.gamingCenterId} on Date: ${pair.date}`);
-    await AnalyticsRepo.syncSalonStats(pair.gamingCenterId, date);
-
-    // Sync for each staff on that date
-    const staffIds = await prisma.$queryRaw<any[]>` // eslint-disable-line @typescript-eslint/no-explicit-any
-      SELECT DISTINCT "staffId" FROM "Reservation"
-      WHERE "gamingCenterId" = ${pair.gamingCenterId} AND "startTime"::date = ${pair.date}::date
-    `;
-    for (const s of staffIds) {
-      await AnalyticsRepo.syncStaffStats(pair.gamingCenterId, s.staffId, date);
+  // Extract unique dates per gamingCenter
+  const uniquePairs = new Map<string, Set<string>>();
+  for (const r of reservationGroups) {
+    const dateStr = r.startTime.toISOString().split('T')[0];
+    if (!uniquePairs.has(r.gamingCenterId)) {
+      uniquePairs.set(r.gamingCenterId, new Set());
     }
+    uniquePairs.get(r.gamingCenterId)!.add(dateStr);
+  }
 
-    // Sync for each station on that date
-    const serviceIds = await prisma.$queryRaw<any[]>` // eslint-disable-line @typescript-eslint/no-explicit-any
-      SELECT DISTINCT "stationId" FROM "Reservation"
-      WHERE "gamingCenterId" = ${pair.gamingCenterId} AND "startTime"::date = ${pair.date}::date
-    `;
-    for (const s of serviceIds) {
-      await AnalyticsRepo.syncServiceStats(pair.gamingCenterId, s.stationId, date);
+  console.log(`Found ${uniquePairs.size} gaming centers with reservations to sync.`);
+
+  for (const [gamingCenterId, dates] of uniquePairs.entries()) {
+    for (const dateStr of dates) {
+      const date = new Date(dateStr);
+      console.log(`Syncing stats for GamingCenter: ${gamingCenterId} on Date: ${dateStr}`);
+      await AnalyticsRepo.syncSalonStats(gamingCenterId, date);
+
+      // Sync for each staff on that date
+      const staffReservations = await prisma.reservation.groupBy({
+        by: ['staffId'],
+        where: {
+          gamingCenterId,
+          startTime: {
+            gte: new Date(`${dateStr}T00:00:00Z`),
+            lte: new Date(`${dateStr}T23:59:59Z`),
+          },
+          staffId: { not: null },
+        },
+      });
+
+      for (const s of staffReservations) {
+        if (s.staffId) {
+          await AnalyticsRepo.syncStaffStats(gamingCenterId, s.staffId, date);
+        }
+      }
+
+      // Sync for each station on that date
+      const stationReservations = await prisma.reservation.groupBy({
+        by: ['stationId'],
+        where: {
+          gamingCenterId,
+          startTime: {
+            gte: new Date(`${dateStr}T00:00:00Z`),
+            lte: new Date(`${dateStr}T23:59:59Z`),
+          },
+        },
+      });
+
+      for (const s of stationReservations) {
+        await AnalyticsRepo.syncServiceStats(gamingCenterId, s.stationId, date);
+      }
     }
   }
 
   // 2. Also handle payments that might be on different dates than reservations
-  const paymentDates = await prisma.$queryRaw<any[]>` // eslint-disable-line @typescript-eslint/no-explicit-any
-    SELECT DISTINCT "gamingCenterId", "paidAt"::date as date
-    FROM "Payment"
-    WHERE "status" = 'PAID' AND "paidAt" IS NOT NULL
-  `;
+  const paymentGroups = await prisma.payment.groupBy({
+    by: ['gamingCenterId', 'paidAt'],
+    where: {
+      status: 'PAID',
+      paidAt: { not: null },
+    },
+  });
 
-  console.log(`Found ${paymentDates.length} unique gamingCenter-date pairs to sync from Payments.`);
+  const uniquePaymentPairs = new Map<string, Set<string>>();
+  for (const p of paymentGroups) {
+    if (p.paidAt) {
+      const dateStr = p.paidAt.toISOString().split('T')[0];
+      if (!uniquePaymentPairs.has(p.gamingCenterId)) {
+        uniquePaymentPairs.set(p.gamingCenterId, new Set());
+      }
+      uniquePaymentPairs.get(p.gamingCenterId)!.add(dateStr);
+    }
+  }
 
-  for (const pair of paymentDates) {
-    await AnalyticsRepo.syncSalonStats(pair.gamingCenterId, new Date(pair.date));
+  console.log(`Found ${uniquePaymentPairs.size} gaming centers with payments to sync.`);
+
+  for (const [gamingCenterId, dates] of uniquePaymentPairs.entries()) {
+    for (const dateStr of dates) {
+      await AnalyticsRepo.syncSalonStats(gamingCenterId, new Date(dateStr));
+    }
   }
 
   console.log('Backfill completed successfully.');

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { z } from 'zod';
 import { PageSectionType } from '@prisma/client';
-import { sectionConfigs } from './section-config';
 import { SECTION_DEFINITIONS, escapeHtml } from './section-definitions';
 
 export { escapeHtml };
@@ -41,5 +40,12 @@ export const validateSectionData = (type: PageSectionType, dataJson: string) => 
 };
 
 export const serializeSectionRegistryForEditor = () => {
+  const sectionConfigs = Object.fromEntries(
+    Object.entries(SECTION_DEFINITIONS).map(([type, def]) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { schema, renderer, ...config } = def;
+      return [type, config];
+    })
+  );
   return JSON.stringify(sectionConfigs, null, 2);
 };

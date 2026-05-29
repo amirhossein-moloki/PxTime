@@ -456,7 +456,11 @@ export const reservationsService = {
           }
         }
 
-        const updatedBooking = await ReservationsRepo.updateReservation(reservationId, updateData, tx);
+        const updatedBooking = await ReservationsRepo.updateReservation(reservationId, gamingCenterId, updateData, tx);
+
+        if (!updatedBooking) {
+          throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+        }
 
         await auditService.log(
           gamingCenterId,
@@ -497,12 +501,17 @@ export const reservationsService = {
 
     const updatedBooking = await ReservationsRepo.updateReservationWithInclude(
       reservationId,
+      gamingCenterId,
       { status: ReservationStatus.CONFIRMED },
       {
         gamingCenter: { include: { settings: true } },
         customerAccount: true,
       }
     );
+
+    if (!updatedBooking) {
+      throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+    }
 
     eventEmitter.emit(AppEvents.BOOKING_CONFIRMED, {
       reservation: updatedBooking,
@@ -533,6 +542,7 @@ export const reservationsService = {
     const updatedBooking = await ReservationsRepo.transaction(async (tx) => {
       const result = await ReservationsRepo.updateReservationWithInclude(
         reservationId,
+        gamingCenterId,
         {
           status: ReservationStatus.CANCELED,
           canceledAt: new Date(),
@@ -545,6 +555,10 @@ export const reservationsService = {
         },
         tx
       );
+
+      if (!result) {
+        throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+      }
 
       // Trigger refund if there are successful payments
       await WalletService.refundBookingToWallet(reservationId, tx);
@@ -586,10 +600,14 @@ export const reservationsService = {
       throw new AppError('Invalid state transition: Reservation cannot be completed.', httpStatus.CONFLICT);
     }
 
-    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, {
+    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, gamingCenterId, {
       status: ReservationStatus.COMPLETED,
       completedAt: new Date(),
     });
+
+    if (!updatedBooking) {
+      throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+    }
 
     await auditService.log(
       gamingCenterId,
@@ -626,10 +644,14 @@ export const reservationsService = {
       throw new AppError('Invalid state transition: Reservation cannot be marked as no-show.', httpStatus.CONFLICT);
     }
 
-    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, {
+    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, gamingCenterId, {
       status: ReservationStatus.NO_SHOW,
       noShowAt: new Date(),
     });
+
+    if (!updatedBooking) {
+      throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+    }
 
     await auditService.log(
       gamingCenterId,

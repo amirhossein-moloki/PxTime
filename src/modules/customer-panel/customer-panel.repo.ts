@@ -90,12 +90,14 @@ export const CustomerPanelRepo = {
     });
   },
 
-  async updateReservation(id: string, data: Prisma.ReservationUpdateInput, tx?: Prisma.TransactionClient) {
+  async updateReservation(id: string, customerAccountId: string, data: Prisma.ReservationUpdateInput, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
-    return client.reservation.update({
-      where: { id },
+    const result = await client.reservation.updateMany({
+      where: { id, customerAccountId },
       data,
     });
+    if (result.count === 0) return null;
+    return client.reservation.findUnique({ where: { id } });
   },
 
   async transaction<T>(fn: (tx: Prisma.TransactionClient) => Promise<T>) {

@@ -122,21 +122,24 @@ export const ReservationsRepo = {
     return client.reservation.count({ where });
   },
 
-  async updateReservation(id: string, data: Prisma.ReservationUncheckedUpdateInput, tx?: Prisma.TransactionClient) {
+  async updateReservation(id: string, gamingCenterId: string, data: Prisma.ReservationUncheckedUpdateInput, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
-    return client.reservation.update({
-      where: { id },
+    const result = await client.reservation.updateMany({
+      where: { id, gamingCenterId },
       data,
     });
+    if (result.count === 0) return null;
+    return client.reservation.findUnique({ where: { id } });
   },
 
-  async updateReservationWithInclude(id: string, data: Prisma.ReservationUncheckedUpdateInput, include: Prisma.ReservationInclude, tx?: Prisma.TransactionClient) {
+  async updateReservationWithInclude(id: string, gamingCenterId: string, data: Prisma.ReservationUncheckedUpdateInput, include: Prisma.ReservationInclude, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
-    return client.reservation.update({
-      where: { id },
+    const result = await client.reservation.updateMany({
+      where: { id, gamingCenterId },
       data,
-      include,
     });
+    if (result.count === 0) return null;
+    return client.reservation.findUnique({ where: { id }, include });
   },
 
   async findSettings(gamingCenterId: string, tx?: Prisma.TransactionClient) {

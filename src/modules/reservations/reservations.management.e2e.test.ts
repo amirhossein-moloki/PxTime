@@ -36,10 +36,10 @@ describe('Reservation Management E2E', () => {
     station = await createTestService({ gamingCenterId: gamingCenter.id, defaultDurationHours: 1, hourlyPrice: 120000 });
 
     await prisma.staffStationSkill.create({
-        data: {
-            userId: staff.id,
-            stationId: station.id
-        }
+      data: {
+        userId: staff.id,
+        stationId: station.id
+      }
     });
 
     const startTime = set(add(new Date(), { days: 7 }), { hours: 10, minutes: 0, seconds: 0, milliseconds: 0 });

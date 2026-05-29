@@ -69,36 +69,40 @@ export async function listPagesBySalon(gamingCenterId: string, filters: PageFilt
 }
 
 export async function updatePage(
+  gamingCenterId: string,
   pageId: string,
   data: UpdatePageData,
   sections?: PageSectionInput[],
   slugHistory?: string
 ) {
   const { sections: _, ...pageData } = data; // eslint-disable-line @typescript-eslint/no-unused-vars
-  return prisma.page.update({
-    where: { id: pageId },
-    data: {
-      ...pageData,
-      ...(slugHistory
-        ? {
-          slugHistory: {
-            create: {
-              oldSlug: slugHistory,
-            },
-          },
-        }
-        : {}),
-      ...(sections
-        ? {
-          sections: {
-            deleteMany: {},
-            create: mapSections(sections),
-          },
-        }
-        : {}),
-    },
-    include: {
-      sections: { orderBy: { sortOrder: 'asc' } },
-    },
+
+  await prisma.$transaction(async (tx) => {
+    const result = await tx.page.updateMany({
+      where: { id: pageId, gamingCenterId },
+      data: pageData,
+    });
+
+    if (result.count === 0) return;
+
+    if (slugHistory) {
+      await tx.pageSlugHistory.create({
+        data: {
+          pageId,
+          oldSlug: slugHistory,
+        },
+      });
+    }
+
+    if (sections) {
+      await tx.pageSection.deleteMany({
+        where: { pageId },
+      });
+      await tx.pageSection.createMany({
+        data: mapSections(sections).map(s => ({ ...s, pageId })),
+      });
+    }
   });
+
+  return findPageById(gamingCenterId, pageId);
 }

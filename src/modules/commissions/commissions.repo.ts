@@ -34,12 +34,14 @@ export const CommissionsRepo = {
     });
   },
 
-  async updateEarning(id: string, data: Prisma.EarningUpdateInput, tx?: Prisma.TransactionClient) {
+  async updateEarning(id: string, gamingCenterId: string, data: Prisma.EarningUpdateInput, tx?: Prisma.TransactionClient) {
     const client = tx || prisma;
-    return client.earning.update({
-      where: { id },
+    const result = await client.earning.updateMany({
+      where: { id, gamingCenterId },
       data,
     });
+    if (result.count === 0) return null;
+    return client.earning.findUnique({ where: { id } });
   },
 
   async listEarnings(gamingCenterId: string, where: Prisma.EarningWhereInput, skip: number, take: number) {

@@ -182,44 +182,44 @@ describe('Customer Panel E2E Tests', () => {
     });
 
     it('should not cancel other people\'s reservations', async () => {
-        const otherCustomer = await prisma.customerAccount.create({
-            data: { phone: '09129999999' }
-        });
-        const profile = await prisma.customerProfile.create({
-            data: {
-              gamingCenterId: gamingCenter.id,
-              customerAccountId: otherCustomer.id,
-            },
-        });
-
-        const reservation = await prisma.reservation.create({
-          data: {
-            gamingCenterId: gamingCenter.id,
-            customerAccountId: otherCustomer.id,
-            customerProfileId: profile.id,
-            stationId: station.id,
-            staffId: staff.id,
-            startTime: new Date(),
-            endTime: new Date(Date.now() + 3600000),
-            stationSnapshot: {
-              name: station.name,
-              hourlyPrice: station.hourlyPrice,
-              stationType: station.stationType,
-            },
-            totalPrice: station.hourlyPrice,
-            totalHours: 1,
-            createdByUserId: staff.id,
-            status: ReservationStatus.CONFIRMED,
-          },
-        });
-
-        const res = await request(app)
-          .post(`/api/v1/customer/reservations/${reservation.id}/cancel`)
-          .set('Authorization', `Bearer ${customerToken}`)
-          .send({ reason: 'Malicious attempt' });
-
-        expect(res.status).toBe(httpStatus.NOT_FOUND);
+      const otherCustomer = await prisma.customerAccount.create({
+        data: { phone: '09129999999' }
       });
+      const profile = await prisma.customerProfile.create({
+        data: {
+          gamingCenterId: gamingCenter.id,
+          customerAccountId: otherCustomer.id,
+        },
+      });
+
+      const reservation = await prisma.reservation.create({
+        data: {
+          gamingCenterId: gamingCenter.id,
+          customerAccountId: otherCustomer.id,
+          customerProfileId: profile.id,
+          stationId: station.id,
+          staffId: staff.id,
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 3600000),
+          stationSnapshot: {
+            name: station.name,
+            hourlyPrice: station.hourlyPrice,
+            stationType: station.stationType,
+          },
+          totalPrice: station.hourlyPrice,
+          totalHours: 1,
+          createdByUserId: staff.id,
+          status: ReservationStatus.CONFIRMED,
+        },
+      });
+
+      const res = await request(app)
+        .post(`/api/v1/customer/reservations/${reservation.id}/cancel`)
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({ reason: 'Malicious attempt' });
+
+      expect(res.status).toBe(httpStatus.NOT_FOUND);
+    });
   });
 
   describe('POST /api/v1/customer/reservations/:reservationId/ratings', () => {
@@ -266,44 +266,44 @@ describe('Customer Panel E2E Tests', () => {
     });
 
     it('should not allow reviewing a non-completed reservation', async () => {
-        const profile = await prisma.customerProfile.create({
-            data: {
-              gamingCenterId: gamingCenter.id,
-              customerAccountId: customerAccount.id,
-            },
-          });
+      const profile = await prisma.customerProfile.create({
+        data: {
+          gamingCenterId: gamingCenter.id,
+          customerAccountId: customerAccount.id,
+        },
+      });
 
-          const reservation = await prisma.reservation.create({
-            data: {
-              gamingCenterId: gamingCenter.id,
-              customerAccountId: customerAccount.id,
-              customerProfileId: profile.id,
-              stationId: station.id,
-              staffId: staff.id,
-              startTime: new Date(),
-              endTime: new Date(Date.now() + 3600000),
-              stationSnapshot: {
-                name: station.name,
-                hourlyPrice: station.hourlyPrice,
-                stationType: station.stationType,
-              },
-              totalPrice: station.hourlyPrice,
-              totalHours: 1,
-              createdByUserId: staff.id,
-              status: ReservationStatus.CONFIRMED,
-            },
-          });
+      const reservation = await prisma.reservation.create({
+        data: {
+          gamingCenterId: gamingCenter.id,
+          customerAccountId: customerAccount.id,
+          customerProfileId: profile.id,
+          stationId: station.id,
+          staffId: staff.id,
+          startTime: new Date(),
+          endTime: new Date(Date.now() + 3600000),
+          stationSnapshot: {
+            name: station.name,
+            hourlyPrice: station.hourlyPrice,
+            stationType: station.stationType,
+          },
+          totalPrice: station.hourlyPrice,
+          totalHours: 1,
+          createdByUserId: staff.id,
+          status: ReservationStatus.CONFIRMED,
+        },
+      });
 
-          const res = await request(app)
-            .post(`/api/v1/customer/reservations/${reservation.id}/ratings`)
-            .set('Authorization', `Bearer ${customerToken}`)
-            .send({
-              rating: 5,
-              comment: 'Great station!',
-            });
+      const res = await request(app)
+        .post(`/api/v1/customer/reservations/${reservation.id}/ratings`)
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          rating: 5,
+          comment: 'Great station!',
+        });
 
-          expect(res.status).toBe(httpStatus.BAD_REQUEST);
-          expect(res.body.message).toContain('Only completed reservations can be reviewed');
+      expect(res.status).toBe(httpStatus.BAD_REQUEST);
+      expect(res.body.message).toContain('Only completed reservations can be reviewed');
     });
   });
 });

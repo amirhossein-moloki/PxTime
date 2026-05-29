@@ -87,13 +87,18 @@ export async function updateProfile(
   gamingCenterId: string,
   data: UpdateCustomerInput
 ) {
-  return prisma.customerProfile.update({
+  const result = await prisma.customerProfile.updateMany({
     where: {
       id: profileId,
-      // We don't have a unique constraint on id and gamingCenterId, but it's safe since id is PK.
-      // However, to ensure tenant isolation:
+      gamingCenterId,
     },
     data,
+  });
+
+  if (result.count === 0) return null;
+
+  return prisma.customerProfile.findUnique({
+    where: { id: profileId },
     include: {
       customerAccount: true,
     },

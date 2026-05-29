@@ -17,14 +17,17 @@ export const LinksService = {
     if (!link || link.gamingCenterId !== gamingCenterId) {
       throw new AppError('Link not found', httpStatus.NOT_FOUND);
     }
-    return LinksRepo.update(linkId, data);
+    const result = await LinksRepo.update(linkId, gamingCenterId, data);
+    if (!result) {
+      throw new AppError('Link not found', httpStatus.NOT_FOUND);
+    }
+    return result;
   },
 
   async deleteLink(gamingCenterId: string, linkId: string): Promise<void> {
-    const link = await LinksRepo.findById(linkId);
-    if (!link || link.gamingCenterId !== gamingCenterId) {
+    const success = await LinksRepo.delete(linkId, gamingCenterId);
+    if (!success) {
       throw new AppError('Link not found', httpStatus.NOT_FOUND);
     }
-    await LinksRepo.delete(linkId);
   },
 };

@@ -186,14 +186,6 @@ export const AuthService = {
   },
 
   async loginCustomer(phone: string) {
-    const verificationWindow = new Date(Date.now() - OTP_POST_VERIFICATION_WINDOW_MINUTES * 60 * 1000);
-
-    const recentVerifiedOtp = await AuthRepository.findRecentConsumedOtp(phone, OtpPurpose.LOGIN, verificationWindow);
-
-    if (!recentVerifiedOtp) {
-      throw new AppError('No recent OTP verification found. Please verify again.', httpStatus.UNAUTHORIZED);
-    }
-
     let customer = await AuthRepository.findCustomerByPhone(phone);
 
     if (!customer) {

@@ -24,16 +24,19 @@ export const LinksRepo = {
     });
   },
 
-  async update(id: string, data: any): Promise<SocialLink> {
-    return prisma.socialLink.update({
-      where: { id },
+  async update(id: string, gamingCenterId: string, data: any): Promise<SocialLink | null> {
+    const result = await prisma.socialLink.updateMany({
+      where: { id, gamingCenterId },
       data,
     });
+    if (result.count === 0) return null;
+    return prisma.socialLink.findUnique({ where: { id } });
   },
 
-  async delete(id: string): Promise<SocialLink> {
-    return prisma.socialLink.delete({
-      where: { id },
+  async delete(id: string, gamingCenterId: string): Promise<boolean> {
+    const result = await prisma.socialLink.deleteMany({
+      where: { id, gamingCenterId },
     });
+    return result.count > 0;
   },
 };

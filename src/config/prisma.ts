@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import logger from './logger';
 import { env } from './env';
+import { tenantGuardExtension } from './prisma-extensions';
 
 declare global {
   // جلوگیری از ساخت چندباره PrismaClient در dev (hot reload)
@@ -61,7 +62,7 @@ function createPrismaClient() {
     });
   }
 
-  return client;
+  return client.$extends(tenantGuardExtension) as unknown as PrismaClient;
 }
 
 // Singleton export
