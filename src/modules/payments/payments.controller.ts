@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AppRequest } from '../../types/express';
 import { asyncHandler } from '../../common/middleware/asyncHandler';
 import { PaymentsService } from './payments.station';
 
-const initiatePayment = asyncHandler(async (req: Request, res: Response) => {
+const initiatePayment = async (req: AppRequest, res: Response) => {
   const { gamingCenterId, reservationId } = req.params;
   const idempotencyKey = req.header('Idempotency-Key');
 
@@ -13,7 +14,7 @@ const initiatePayment = asyncHandler(async (req: Request, res: Response) => {
   });
 
   res.created(result);
-});
+};
 
 export const PaymentsController = {
   initiatePayment,

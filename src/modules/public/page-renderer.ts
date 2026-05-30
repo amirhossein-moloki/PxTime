@@ -151,7 +151,7 @@ export const renderPageDocument = ({
   sections,
   pageId,
 }: PageRenderInput) => {
-  const resolvedPage = page ?? {
+  const resolvedPage = page ?? ({
     title: title ?? 'Preview',
     seoTitle: null,
     seoDescription: null,
@@ -159,10 +159,10 @@ export const renderPageDocument = ({
     ogTitle: null,
     ogDescription: null,
     ogImageUrl: null,
-    robotsIndex: null,
-    robotsFollow: null,
+    robotsIndex: RobotsIndex.INDEX,
+    robotsFollow: RobotsFollow.FOLLOW,
     structuredDataJson: null,
-  };
+  } as SeoPageInput);
   const seoMeta = buildSeoMeta({ page: resolvedPage, siteSettings });
 
   return `<!doctype html>

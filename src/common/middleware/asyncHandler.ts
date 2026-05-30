@@ -1,7 +1,13 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 
-type AsyncFunction = (req: Request, res: Response, next: NextFunction) => Promise<unknown>;
+type AsyncFunction<T extends Request = Request> = (
+  req: T,
+  res: Response,
+  next: NextFunction
+) => Promise<unknown>;
 
-export const asyncHandler = (execution: AsyncFunction) => (req: Request, res: Response, next: NextFunction) => {
-  execution(req, res, next).catch(next);
+export const asyncHandler = <T extends Request = Request>(
+  execution: AsyncFunction<T>
+): any => (req: Request, res: Response, next: NextFunction) => {
+  execution(req as T, res, next).catch(next);
 };

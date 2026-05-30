@@ -15,7 +15,7 @@ if (env.NODE_ENV === 'test') {
 
   loggerMiddleware = pinoHttp({
     logger,
-    genReqId: function (req, res) {
+    genReqId: function (req: any, res: any) {
       const existingId = req.id ?? req.headers['x-request-id'];
       if (existingId) return existingId;
       const id = cuid();
@@ -29,7 +29,7 @@ if (env.NODE_ENV === 'test') {
       responseTime: 'duration',
       reqId: 'requestId',
     },
-    customProps: function (req, _res) { // eslint-disable-line @typescript-eslint/no-unused-vars
+    customProps: function (req: any, _res: any) { // eslint-disable-line @typescript-eslint/no-unused-vars
       return {
         actorId: req.actor?.id || null,
         gamingCenterId: req.params?.gamingCenterId || null,
@@ -37,13 +37,13 @@ if (env.NODE_ENV === 'test') {
     },
     // Use serializers to sanitize sensitive fields from the log output.
     serializers: {
-      req(req) {
+      req(req: any) {
         // Sanitize headers and body before they are logged.
         req.headers = sanitizeLog(req.headers);
         req.body = sanitizeLog(req.body);
         return req;
       },
-      res(res) {
+      res(res: any) {
         // Sanitize headers from the response.
         res.headers = sanitizeLog(res.headers);
         return res;

@@ -56,8 +56,8 @@ describe('buildSeoMeta', () => {
       seoTitle: null,
       seoDescription: null,
       ogImageUrl: null,
-      robotsIndex: null,
-      robotsFollow: null,
+      robotsIndex: null as any,
+      robotsFollow: null as any,
     };
 
     const meta = buildSeoMeta({ page, siteSettings });

@@ -6,6 +6,8 @@ import { idempotencyMiddleware } from '../../common/middleware/idempotency';
 import { publicBookingRateLimiter } from '../../common/middleware/rateLimit';
 import { resolveSalonBySlug } from '../../common/middleware/resolveSalonBySlug';
 import { env } from '../../config/env';
+import { asyncHandler } from '../../common/middleware/asyncHandler';
+import { AppRequest } from '../../types/express';
 
 const router = Router({ mergeParams: true });
 
@@ -16,7 +18,7 @@ router.post(
   resolveSalonBySlug,
   validate(createPublicBookingSchema),
   idempotencyMiddleware,
-  bookingsController.createPublicBooking
+  asyncHandler<AppRequest>(bookingsController.createPublicBooking)
 );
 
 export default router;

@@ -197,7 +197,7 @@ export const reservationsService = {
 
         const staffShift = await ReservationsRepo.findStaffShift(gamingCenter.id, staff.id, zonedStartAt.getDay(), tx);
 
-        if (!staffShift) {
+        if (!staffShift || !staffShift.startTime || !staffShift.endTime) {
           throw new AppError('Selected time is not available.', httpStatus.CONFLICT, {
             code: 'SLOT_NOT_AVAILABLE',
           });
@@ -362,10 +362,10 @@ export const reservationsService = {
           }
         }
 
-        if (staffChanged || serviceChanged) {
-          const staff = await ReservationsRepo.findStaff(effectiveStaffId, gamingCenterId, effectiveServiceId, undefined, tx);
+        if ((staffChanged || serviceChanged) && effectiveStaffId) {
+          const staff = await ReservationsRepo.findStaff(effectiveStaffId!, gamingCenterId, effectiveServiceId, undefined, tx);
 
-          if (!staff) {
+          if (!staff || !staff.id) {
             throw new AppError(
               'Staff member not found or does not perform this station.',
               httpStatus.NOT_FOUND
@@ -406,9 +406,9 @@ export const reservationsService = {
           const newEndAt = addMinutes(newStartAt, durationHours * 60);
           const zonedNewStartAt = toZonedTime(newStartAt, timeZone);
 
-          const staffShift = await ReservationsRepo.findStaffShift(gamingCenterId, effectiveStaffId, zonedNewStartAt.getDay(), tx);
+          const staffShift = effectiveStaffId ? await ReservationsRepo.findStaffShift(gamingCenterId, effectiveStaffId!, zonedNewStartAt.getDay(), tx) : null;
 
-          if (!staffShift) {
+          if (!staffShift || !staffShift.startTime || !staffShift.endTime) {
             throw new AppError('Selected time is not available.', httpStatus.CONFLICT, {
               code: 'SLOT_NOT_AVAILABLE',
             });
@@ -424,7 +424,7 @@ export const reservationsService = {
           }
 
           const preventOverlaps = settings?.preventOverlaps ?? true;
-          if (preventOverlaps) {
+          if (preventOverlaps && effectiveStaffId) {
             const overlappingBooking = await ReservationsRepo.findOverlappingReservation(
               gamingCenterId,
               effectiveStaffId,

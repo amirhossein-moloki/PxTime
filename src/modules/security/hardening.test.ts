@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 // Mock troublesome modules before importing the app
 jest.mock('helmet', () => ({
   __esModule: true,
-  default: () => (req, res, next) => next(),
+  default: () => (req: any, res: any, next: any) => next(),
 }));
 jest.mock('uuid', () => ({
   v4: () => 'mock-uuid-v4',
