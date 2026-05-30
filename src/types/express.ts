@@ -8,7 +8,7 @@ declare global {
   namespace Express {
     export interface Request {
       actor?: {
-        id?: string;
+        id: string;
         actorId?: string;
         role?: UserRole;
         gamingCenterId?: string;
