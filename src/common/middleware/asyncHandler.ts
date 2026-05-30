@@ -8,6 +8,6 @@ type AsyncFunction<T extends Request = Request> = (
 
 export const asyncHandler = <T extends Request = Request>(
   execution: AsyncFunction<T>
-): RequestHandler => (req, res, next) => {
+): any => (req: Request, res: Response, next: NextFunction) => {
   execution(req as T, res, next).catch(next);
 };
