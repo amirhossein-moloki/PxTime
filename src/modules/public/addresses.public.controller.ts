@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 import * as PublicAddressesService from './addresses.public.station';
 
 type PublicSalonRequest = Request & {
-  tenant?: { gamingCenterId: string; gamingCenterSlug: string };
+  tenant?: { gamingCenterId: string; gamingCenterSlug?: string };
 };
 
 export async function getPublicAddresses(req: PublicSalonRequest, res: Response) {
