@@ -69,7 +69,14 @@ export const createTestReservation = (
   customerProfileId: string,
   stationId: string,
   staffId: string,
-  options?: Partial<Reservation>
+  options?: Partial<Omit<Prisma.ReservationUncheckedCreateInput,
+    | 'gamingCenterId'
+    | 'customerAccountId'
+    | 'customerProfileId'
+    | 'stationId'
+    | 'staffId'
+    | 'createdByUserId'
+  >>
 ): Promise<Reservation> => {
   return prisma.reservation.create({
     data: {
