@@ -5,7 +5,7 @@ import { UserRole } from '@prisma/client';
 import createHttpError from 'http-errors';
 
 jest.mock('../../common/middleware/auth', () => ({
-  authMiddleware: (req, res, next) => {
+  authMiddleware: (req: any, res: any, next: any) => {
     if (req.headers.authorization) {
       const token = req.headers.authorization.split(' ')[1];
       if (token === 'mock-manager-token') {
@@ -20,7 +20,7 @@ jest.mock('../../common/middleware/auth', () => ({
 }));
 
 jest.mock('../../common/middleware/requireRole', () => ({
-  requireRole: (roles) => (req, res, next) => {
+  requireRole: (roles: any) => (req: any, res: any, next: any) => {
     if (req.actor && roles.includes(req.actor.role)) {
       next();
     } else {

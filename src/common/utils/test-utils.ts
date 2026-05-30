@@ -48,7 +48,7 @@ export const createTestUser = (options: { gamingCenterId: string; role?: UserRol
   });
 };
 
-export const createTestStation = (options: { gamingCenterId: string } & Partial<GameStation>): Promise<GameStation> => {
+export const createTestStation = (options: { gamingCenterId: string } & Partial<Omit<GameStation, 'gamingCenterId'>>): Promise<GameStation> => {
   const { gamingCenterId, name = 'Test Station', stationType = GameStationType.PC, hourlyPrice = 50000 } = options;
   return prisma.gameStation.create({
     data: {
@@ -56,7 +56,7 @@ export const createTestStation = (options: { gamingCenterId: string } & Partial<
       name,
       stationType,
       hourlyPrice,
-      ...options,
+      ...(options as any),
     },
   });
 };
@@ -85,7 +85,7 @@ export const createTestReservation = (
         name: 'Snapshot Station',
         hourlyPrice: 50000,
         stationType: GameStationType.PC,
-      },
+      } as any,
       totalPrice: 50000,
       totalHours: 1,
       status: ReservationStatus.CONFIRMED,

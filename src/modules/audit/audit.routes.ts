@@ -7,6 +7,8 @@ import { authMiddleware } from '../../common/middleware/auth';
 import { tenantGuard } from '../../common/middleware/tenantGuard';
 import { requireRole } from '../../common/middleware/requireRole';
 import { UserRole } from '@prisma/client';
+import { asyncHandler } from '../../common/middleware/asyncHandler';
+import { AppRequest } from '../../types/express';
 
 const router = Router({ mergeParams: true });
 
@@ -16,7 +18,7 @@ router.get(
   tenantGuard,
   requireRole([UserRole.MANAGER]),
   validate(listAuditLogsSchema),
-  getAuditLogs
+  asyncHandler<AppRequest>(getAuditLogs)
 );
 
 export default router;

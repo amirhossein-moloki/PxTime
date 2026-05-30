@@ -14,6 +14,8 @@ import { idParamSchema } from '../../common/validators/common.validators';
 import { tenantGuard } from '../../common/middleware/tenantGuard';
 import { privateApiRateLimiter } from '../../common/middleware/rateLimit';
 import { env } from '../../config/env';
+import { asyncHandler } from '../../common/middleware/asyncHandler';
+import { AppRequest } from '../../types/express';
 
 const router = Router({ mergeParams: true });
 
@@ -30,7 +32,7 @@ router.post(
   '/',
   requireRole(M_R),
   validate(createBookingSchema),
-  bookingsController.createBooking
+  asyncHandler<AppRequest>(bookingsController.createBooking)
 );
 
 // 2. List Bookings
@@ -38,7 +40,7 @@ router.get(
   '/',
   requireRole(M_R_S),
   validate(listBookingsQuerySchema),
-  bookingsController.getBookings
+  asyncHandler<AppRequest>(bookingsController.getBookings)
 );
 
 // 3. Get Reservation by ID
@@ -46,7 +48,7 @@ router.get(
   '/:reservationId',
   requireRole(M_R_S),
   validate(idParamSchema('reservationId')),
-  bookingsController.getBookingById
+  asyncHandler<AppRequest>(bookingsController.getBookingById)
 );
 
 // 4. Update Reservation Details
@@ -54,7 +56,7 @@ router.patch(
   '/:reservationId',
   requireRole(M_R),
   validate(updateBookingSchema),
-  bookingsController.updateBooking
+  asyncHandler<AppRequest>(bookingsController.updateBooking)
 );
 
 // 5. Confirm Reservation
@@ -62,7 +64,7 @@ router.post(
   '/:reservationId/confirm',
   requireRole(M_R),
   validate(idParamSchema('reservationId')),
-  bookingsController.confirmBooking
+  asyncHandler<AppRequest>(bookingsController.confirmBooking)
 );
 
 // 6. Cancel Reservation
@@ -70,7 +72,7 @@ router.post(
   '/:reservationId/cancel',
   requireRole(M_R),
   validate(cancelBookingSchema),
-  bookingsController.cancelBooking
+  asyncHandler<AppRequest>(bookingsController.cancelBooking)
 );
 
 // 7. Complete Reservation
@@ -78,7 +80,7 @@ router.post(
   '/:reservationId/complete',
   requireRole(M_R),
   validate(idParamSchema('reservationId')),
-  bookingsController.completeBooking
+  asyncHandler<AppRequest>(bookingsController.completeBooking)
 );
 
 // 8. Mark as No-Show
@@ -86,7 +88,7 @@ router.post(
   '/:reservationId/no-show',
   requireRole(M_R),
   validate(idParamSchema('reservationId')),
-  bookingsController.markAsNoShow
+  asyncHandler<AppRequest>(bookingsController.markAsNoShow)
 );
 
 export default router;

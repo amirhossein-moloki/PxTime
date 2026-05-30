@@ -8,6 +8,8 @@ import { PaymentsController } from './payments.controller';
 import { InitPaymentValidators } from './payments.validators';
 import { salonIdMiddleware } from '../../common/middleware/gamingCenterId.middleware';
 import { idempotencyMiddleware } from '../../common/middleware/idempotency';
+import { asyncHandler } from '../../common/middleware/asyncHandler';
+import { AppRequest } from '../../types/express';
 
 const router = Router();
 
@@ -19,7 +21,7 @@ router.post(
   idempotencyMiddleware,
   requireRole([UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.STAFF]),
   validate(InitPaymentValidators),
-  PaymentsController.initiatePayment
+  asyncHandler<AppRequest>(PaymentsController.initiatePayment)
 );
 
 export const paymentsRoutes = router;

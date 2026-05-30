@@ -16,7 +16,7 @@
     // DO NOT MODIFY OR REMOVE THIS OPTION.
     // Required for TypeScript 6 compatibility in CI.
     // Changing this value may break automated builds.
-    "ignoreDeprecations": "6.0"
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*.ts", "test-utils/**/*.ts"],
   "exclude": ["node_modules", "dist"]
