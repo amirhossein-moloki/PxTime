@@ -6,7 +6,7 @@ import {
   RobotsFollow,
   RobotsIndex,
 } from '@prisma/client';
-import { validateSectionData } from './page-sections.schemas';
+import { validateSectionData } from './page-section-registry';
 
 const CUID_MESSAGE = 'Invalid CUID';
 

@@ -37,15 +37,16 @@ export const AvailabilityRepo = {
     });
   },
 
-  async findShifts(staffIds: string[]) {
+  async findShifts(gamingCenterId: string, staffIds: string[]) {
     return prisma.staffShift.findMany({
-      where: { userId: { in: staffIds }, isActive: true },
+      where: { gamingCenterId, userId: { in: staffIds }, isActive: true },
     });
   },
 
-  async findBookings(staffIds: string[], startDate: Date, endDate: Date) {
+  async findBookings(gamingCenterId: string, staffIds: string[], startDate: Date, endDate: Date) {
     return prisma.reservation.findMany({
       where: {
+        gamingCenterId,
         staffId: { in: staffIds },
         status: { notIn: ['CANCELED', 'NO_SHOW'] },
         startTime: { gte: startDate },

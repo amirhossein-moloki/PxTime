@@ -1,5 +1,5 @@
 import { PageSectionType } from '@prisma/client';
-import { validateSectionData } from '../page-sections.schemas';
+import { validateSectionData } from '../page-section-registry';
 
 describe('page section schemas', () => {
   const validSectionPayloads: Record<PageSectionType, unknown> = {

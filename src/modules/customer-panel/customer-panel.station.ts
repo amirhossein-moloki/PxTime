@@ -67,7 +67,7 @@ export const CustomerPanelService = {
     }
 
     const updatedBooking = await CustomerPanelRepo.transaction(async (tx) => {
-      const result = await CustomerPanelRepo.updateReservation(reservationId, {
+      const result = await CustomerPanelRepo.updateReservation(reservationId, customerAccountId, {
         status: ReservationStatus.CANCELED,
         canceledAt: new Date(),
         cancelReason: reason || 'Canceled by customer',
@@ -120,12 +120,12 @@ export const CustomerPanelService = {
 
       AnalyticsRepo.syncAllStatsForReview(rating.id).catch(console.error);
 
-        return rating;
+      return rating;
     } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-            throw new AppError('Rating already exists for this reservation/target', httpStatus.CONFLICT);
-        }
-        throw error;
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new AppError('Rating already exists for this reservation/target', httpStatus.CONFLICT);
+      }
+      throw error;
     }
   },
 };

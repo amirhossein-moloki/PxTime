@@ -57,7 +57,7 @@ export const WalletService = {
         reservation.customerAccountId,
         totalPaid,
         WalletTransactionType.REFUND,
-        ((reservation.stationSnapshot as any)?.currency || "USD"),
+        ((reservation.stationSnapshot as any)?.currency || 'USD'),
         reservationId,
         `Refund for reservation ${reservationId}`,
         t

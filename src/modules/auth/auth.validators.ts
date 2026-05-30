@@ -1,21 +1,11 @@
 import { z } from 'zod';
-import { SessionActorType } from '@prisma/client';
 
 export const loginSchema = z.object({
   body: z.object({
     phone: z.string().min(10, 'Phone number must be at least 10 digits'),
-    password: z.string().optional(),
-    actorType: z.nativeEnum(SessionActorType),
-    gamingCenterId: z.string().optional(), // Required for USER actorType
+    password: z.string(),
+    gamingCenterId: z.string(),
   }),
-}).refine(data => {
-  if (data.body.actorType === 'USER') {
-    return !!data.body.password && !!data.body.gamingCenterId;
-  }
-  return true;
-}, {
-  message: 'Password and GamingCenter ID are required for USER login',
-  path: ['body'],
 });
 
 export const refreshSchema = z.object({

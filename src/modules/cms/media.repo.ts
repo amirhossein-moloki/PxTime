@@ -19,9 +19,15 @@ export async function findMediaById(gamingCenterId: string, mediaId: string) {
   });
 }
 
-export async function updateMedia(mediaId: string, data: UpdateMediaData) {
-  return prisma.media.update({
-    where: { id: mediaId },
+export async function updateMedia(gamingCenterId: string, mediaId: string, data: UpdateMediaData) {
+  const result = await prisma.media.updateMany({
+    where: { id: mediaId, gamingCenterId },
     data,
+  });
+
+  if (result.count === 0) return null;
+
+  return prisma.media.findUnique({
+    where: { id: mediaId },
   });
 }

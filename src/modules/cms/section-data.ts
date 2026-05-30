@@ -1,7 +1,7 @@
 import { PageSectionType } from '@prisma/client';
 import { ZodError } from 'zod';
 
-import { pageSectionSchemaByType } from './page-sections.schemas';
+import { pageSectionSchemaByType } from './page-section-registry';
 
 type SectionParseContext = {
   pageId?: string;

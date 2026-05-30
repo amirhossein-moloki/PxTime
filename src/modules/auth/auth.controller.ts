@@ -1,16 +1,10 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.station';
-import { SessionActorType } from '@prisma/client';
 
 export const login = async (req: Request, res: Response) => {
-  const { phone, password, actorType, gamingCenterId } = req.body;
+  const { phone, password, gamingCenterId } = req.body;
 
-  let result;
-  if (actorType === SessionActorType.USER) {
-    result = await AuthService.loginUser(phone, password, gamingCenterId);
-  } else {
-    result = await AuthService.loginCustomer(phone);
-  }
+  const result = await AuthService.loginUser(phone, password, gamingCenterId);
 
   res.ok(result);
 };
@@ -35,7 +29,8 @@ export const requestCustomerOtp = async (req: Request, res: Response) => {
 
 export const verifyCustomerOtp = async (req: Request, res: Response) => {
   const { phone, code } = req.body;
-  const result = await AuthService.verifyCustomerOtp(phone, code);
+  await AuthService.verifyCustomerOtp(phone, code);
+  const result = await AuthService.loginCustomer(phone);
   res.ok(result);
 };
 

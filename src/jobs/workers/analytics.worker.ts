@@ -13,15 +13,15 @@ export const analyticsWorker = new Worker(
 
     try {
       switch (type) {
-        case 'BOOKING':
-          await AnalyticsRepo.syncAllStatsForBooking(entityId);
-          break;
-        case 'PAYMENT':
-          await AnalyticsRepo.syncAllStatsForPayment(entityId);
-          break;
-        case 'REVIEW':
-          await AnalyticsRepo.syncAllStatsForReview(entityId);
-          break;
+      case 'BOOKING':
+        await AnalyticsRepo.syncAllStatsForBooking(entityId);
+        break;
+      case 'PAYMENT':
+        await AnalyticsRepo.syncAllStatsForPayment(entityId);
+        break;
+      case 'REVIEW':
+        await AnalyticsRepo.syncAllStatsForReview(entityId);
+        break;
       }
     } catch (error) {
       logger.error({ msg: 'Analytics sync job failed', jobId: job.id, error });

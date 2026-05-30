@@ -195,7 +195,7 @@ export const commissionsService = {
       const totalPaid = allPayments.reduce((sum, p) => sum + p.amount, 0);
 
       if (totalPaid >= commission.commissionAmount) {
-        await CommissionsRepo.updateEarning(earningId, {
+        await CommissionsRepo.updateEarning(earningId, gamingCenterId, {
           status: CommissionStatus.CHARGED,
           chargedAt: new Date()
         }, tx);
