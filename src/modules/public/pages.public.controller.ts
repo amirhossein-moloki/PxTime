@@ -6,7 +6,7 @@ import { prisma } from '../../config/prisma';
 import { renderPageDocument } from './page-renderer';
 
 type PublicPageRequest = Request<{ gamingCenterSlug: string; pageSlug?: string }> & {
-  tenant?: { gamingCenterId: string; gamingCenterSlug: string };
+  tenant?: { gamingCenterId: string; gamingCenterSlug?: string };
 };
 
 export async function getPublicSalonHome(req: PublicPageRequest, res: Response) {

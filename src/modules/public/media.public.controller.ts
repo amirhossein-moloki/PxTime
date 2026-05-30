@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 import * as PublicMediaService from './media.public.station';
 
 type PublicSalonRequest = Request & {
-  tenant?: { gamingCenterId: string; gamingCenterSlug: string };
+  tenant?: { gamingCenterId: string; gamingCenterSlug?: string };
 };
 
 export async function getPublicMedia(req: PublicSalonRequest, res: Response) {

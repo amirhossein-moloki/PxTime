@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 import * as PublicLinksService from './links.public.station';
 
 type PublicSalonRequest = Request & {
-  tenant?: { gamingCenterId: string; gamingCenterSlug: string };
+  tenant?: { gamingCenterId: string; gamingCenterSlug?: string };
 };
 
 export async function getPublicLinks(req: PublicSalonRequest, res: Response) {

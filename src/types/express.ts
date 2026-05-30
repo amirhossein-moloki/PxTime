@@ -18,6 +18,9 @@ declare global {
       id?: string;
       requestId?: string;
       rawBody?: Buffer;
+      tenant?: { gamingCenterId: string; salonSlug?: string; gamingCenterSlug?: string };
+      gamingCenterSlug?: string;
+      salonSlug?: string;
     }
 
     export interface Response {
