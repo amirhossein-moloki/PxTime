@@ -5,7 +5,7 @@ export const UserFactory = {
     return {
       id: uuidv4(),
       phone: '09000000000',
-      passwordHash: 'hashed_placeholder_password',
+      passwordHash: 'h_t',
       phoneVerifiedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -20,7 +20,7 @@ export const SessionFactory = {
       id: uuidv4(),
       actorId: uuidv4(),
       actorType: 'USER',
-      tokenHash: 'hashed_placeholder_token',
+      tokenHash: 'h_t',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       revokedAt: null,
       createdAt: new Date(),
