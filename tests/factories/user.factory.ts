@@ -4,8 +4,8 @@ export const UserFactory = {
   create(overrides = {}) {
     return {
       id: uuidv4(),
-      phone: '09123456789',
-      passwordHash: 'hashed_password',
+      phone: '09000000000',
+      passwordHash: 'hashed_placeholder_password',
       phoneVerifiedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -20,7 +20,7 @@ export const SessionFactory = {
       id: uuidv4(),
       actorId: uuidv4(),
       actorType: 'USER',
-      tokenHash: 'token_hash',
+      tokenHash: 'hashed_placeholder_token',
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       revokedAt: null,
       createdAt: new Date(),
