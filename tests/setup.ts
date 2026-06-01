@@ -28,3 +28,14 @@ jest.mock('../src/config/logger', () => ({
     debug: jest.fn(),
   },
 }));
+
+jest.mock('bullmq', () => ({
+  Queue: jest.fn().mockImplementation(() => ({
+    add: jest.fn(),
+    close: jest.fn(),
+  })),
+  Worker: jest.fn().mockImplementation(() => ({
+    on: jest.fn(),
+    close: jest.fn(),
+  })),
+}));
