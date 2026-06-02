@@ -17,10 +17,10 @@ jest.mock('../../src/config/prisma', () => ({
     user: { findUnique: jest.fn() },
     siteSettings: { findUnique: jest.fn() },
     ['$transaction']: jest.fn((cb: any) => cb({
-       reservation: { update: jest.fn(), create: jest.fn() },
-       payment: { create: jest.fn(), update: jest.fn() },
-       customerAccount: { create: jest.fn(), update: jest.fn() },
-       customerProfile: { create: jest.fn() }
+      reservation: { update: jest.fn(), create: jest.fn() },
+      payment: { create: jest.fn(), update: jest.fn() },
+      customerAccount: { create: jest.fn(), update: jest.fn() },
+      customerProfile: { create: jest.fn() }
     })),
     ['$extends']: jest.fn().mockReturnThis(),
   },
