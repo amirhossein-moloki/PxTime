@@ -20,6 +20,7 @@ The authoritative documentation lives in `docs/` and is generated from the curre
 
 - `docs/QA_VALIDATION_REPORT.md` — summary of final QA activities
 - `docs/RELEASE_READINESS_REPORT.md` — release assessment and recommendation
+- `docs/RELEASE_READINESS_ASSESSMENT.md` — detailed environmental readiness check
 - `docs/E2E_TESTING_GUIDE.md` — guide for running and maintaining E2E tests
 - `docs/COVERAGE_ANALYSIS_REPORT.md` — detailed code coverage findings
 - `docs/PERFORMANCE_REPORT.md` — API performance benchmarks

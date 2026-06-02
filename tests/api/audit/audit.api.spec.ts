@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import request from 'supertest';
 import app from '../../../src/app';
 import { prisma } from '../../../src/config/prisma';
@@ -34,15 +35,15 @@ describe('Audit API', () => {
     (prisma.user.findUnique as any).mockResolvedValue({ id: 'u-1', role: 'MANAGER', gamingCenterId: 'gc-1' });
 
     (prisma as any).$transaction.mockImplementation(async (cb: any) => {
-        const tx = {
-            auditLog: {
-                findMany: (jest.fn() as any).mockResolvedValue([
-                    { id: '1', action: 'CREATE', entity: 'Reservation', entityId: 'res-1', userId: 'u-1', createdAt: new Date() }
-                ]),
-                count: (jest.fn() as any).mockResolvedValue(1),
-            }
-        };
-        return cb(tx);
+      const tx = {
+        auditLog: {
+          findMany: (jest.fn() as any).mockResolvedValue([
+            { id: '1', action: 'CREATE', entity: 'Reservation', entityId: 'res-1', userId: 'u-1', createdAt: new Date() }
+          ]),
+          count: (jest.fn() as any).mockResolvedValue(1),
+        }
+      };
+      return cb(tx);
     });
 
     const res = await request(app)
