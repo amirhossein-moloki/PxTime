@@ -8,18 +8,18 @@ process.env.RATE_LIMIT_STORE = 'memory';
 process.env.PORT = '3000';
 
 import { prismaMock } from '../mocks/prisma.mock';
-import { bullmqMock } from '../mocks/bullmq.mock';
-import { ioredisMock } from '../mocks/ioredis.mock';
+// import { bullmqMock } from '../mocks/bullmq.mock';
+// import { ioredisMock } from '../mocks/ioredis.mock';
 
 (globalThis as any).__prisma = prismaMock;
 
-import * as bullmq from 'bullmq';
-(bullmq as any).Queue = bullmqMock.Queue;
-(bullmq as any).Worker = bullmqMock.Worker;
-(bullmq as any).QueueEvents = bullmqMock.QueueEvents;
+// import * as bullmq from 'bullmq';
+// (bullmq as any).Queue = bullmqMock.Queue;
+// (bullmq as any).Worker = bullmqMock.Worker;
+// (bullmq as any).QueueEvents = bullmqMock.QueueEvents;
 
-import * as ioredis from 'ioredis';
-(ioredis as any).default = ioredisMock;
+// import * as ioredis from 'ioredis';
+// (ioredis as any).default = ioredisMock;
 
 import { generateAccessToken } from '../../src/modules/auth/auth.tokens';
 const token = generateAccessToken({ sessionId: 's-1', actorId: 'u-1', actorType: 'USER' });

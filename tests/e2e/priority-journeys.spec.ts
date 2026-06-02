@@ -1,8 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import request from 'supertest';
 import app from '../../src/app';
 import { prisma } from '../../src/config/prisma';
 import { describe, it, expect, jest } from '@jest/globals';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 jest.mock('../../src/config/prisma', () => ({
   prisma: {

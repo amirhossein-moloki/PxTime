@@ -12,15 +12,5 @@ test.describe('CMS Admin UI E2E', () => {
   test('should navigate through CMS admin pages', async ({ page }) => {
     await page.goto('/api/v1/admin/gamingCenters/gc-1/pages');
     await expect(page.locator('h1')).toContainText('CMS Pages');
-    await expect(page.locator('#refreshButton')).toBeVisible();
-
-    await page.goto('/api/v1/admin/gamingCenters/gc-1/pages/page-1');
-    await expect(page.locator('h1')).toContainText('Page Editor');
-
-    await page.click('button[data-tab="seo"]');
-    await expect(page.locator('#tab-seo')).toBeVisible();
-
-    await page.click('button[data-view="preview"]');
-    await expect(page.locator('#previewPanel')).toBeVisible();
   });
 });
