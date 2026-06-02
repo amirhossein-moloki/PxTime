@@ -1,15 +1,17 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { Worker } from 'bullmq';
+import { Worker, Job } from 'bullmq';
 import { SmsService } from '../../../../src/modules/notifications/sms.station';
 
 jest.mock('../../../../src/modules/notifications/sms.station', () => ({
-    SmsService: {
-        sendTemplateSms: jest.fn()
-    }
+  SmsService: {
+    sendTemplateSms: jest.fn()
+  }
 }));
 jest.mock('bullmq');
 
 const MockedSmsService = SmsService as jest.Mocked<typeof SmsService>;
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 describe('SmsWorker', () => {
   let handler: any;
@@ -18,7 +20,7 @@ describe('SmsWorker', () => {
     jest.clearAllMocks();
     // Re-importing to get the handler passed to Worker constructor
     jest.isolateModules(() => {
-        require('../../../../src/jobs/workers/sms.worker');
+      require('../../../../src/jobs/workers/sms.worker');
     });
     handler = (Worker as jest.MockedClass<typeof Worker>).mock.calls[0][1];
   });
@@ -35,7 +37,7 @@ describe('SmsWorker', () => {
 
     MockedSmsService.sendTemplateSms.mockResolvedValue({} as any);
 
-    await handler(job);
+    await handler(job as Job);
 
     expect(MockedSmsService.sendTemplateSms).toHaveBeenCalledWith('09123456789', 123, job.data.parameters);
   });
@@ -48,6 +50,6 @@ describe('SmsWorker', () => {
 
     MockedSmsService.sendTemplateSms.mockRejectedValue(new Error('SMS fail'));
 
-    await expect(handler(job)).rejects.toThrow('SMS fail');
+    await expect(handler(job as Job)).rejects.toThrow('SMS fail');
   });
 });

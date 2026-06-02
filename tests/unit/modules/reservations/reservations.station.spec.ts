@@ -1,13 +1,8 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { reservationsService } from '../../../../src/modules/reservations/reservations.station';
 import { ReservationsRepo } from '../../../../src/modules/reservations/reservations.repo';
-import { AuthRepository } from '../../../../src/modules/auth/auth.repository';
 import { WalletService } from '../../../../src/modules/wallet/wallet.station';
-import { commissionsService } from '../../../../src/modules/commissions/commissions.station';
-import { auditService } from '../../../../src/modules/audit/audit.station';
 import { eventEmitter } from '../../../../src/common/events/event-emitter';
-import AppError from '../../../../src/common/errors/AppError';
-import httpStatus from 'http-status';
 import { ReservationStatus, SessionActorType, UserRole } from '@prisma/client';
 
 jest.mock('../../../../src/modules/reservations/reservations.repo');
@@ -18,11 +13,10 @@ jest.mock('../../../../src/modules/audit/audit.station');
 jest.mock('../../../../src/common/events/event-emitter');
 
 const MockedReservationsRepo = ReservationsRepo as jest.Mocked<typeof ReservationsRepo>;
-const MockedAuthRepository = AuthRepository as jest.Mocked<typeof AuthRepository>;
 const MockedWalletService = WalletService as jest.Mocked<typeof WalletService>;
-const MockedCommissionsService = commissionsService as jest.Mocked<typeof commissionsService>;
-const MockedAuditService = auditService as jest.Mocked<typeof auditService>;
 const MockedEventEmitter = eventEmitter as jest.Mocked<typeof eventEmitter>;
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 describe('ReservationsStationService', () => {
   const gamingCenterId = 'gc-1';

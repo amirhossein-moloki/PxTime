@@ -8,6 +8,8 @@ jest.mock('../../../../src/modules/availability/availability.repo');
 
 const MockedAvailabilityRepo = AvailabilityRepo as jest.Mocked<typeof AvailabilityRepo>;
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 describe('AvailabilityStationService', () => {
   const salonSlug = 'my-salon';
   const stationId = 'st-1';

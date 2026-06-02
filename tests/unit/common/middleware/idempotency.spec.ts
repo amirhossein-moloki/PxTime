@@ -1,4 +1,6 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { createHash } from 'crypto';
+import { Request, Response } from 'express';
 import { idempotencyMiddleware } from '../../../../src/common/middleware/idempotency';
 import { IdempotencyRepo } from '../../../../src/common/repositories/idempotency.repo';
 import { IdempotencyStatus } from '../../../../src/types/idempotency';
@@ -9,6 +11,8 @@ jest.mock('../../../../src/common/repositories/idempotency.repo');
 jest.mock('../../../../src/config/logger');
 
 const MockedIdempotencyRepo = IdempotencyRepo as jest.Mocked<typeof IdempotencyRepo>;
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 describe('IdempotencyMiddleware', () => {
   let req: any;
@@ -36,14 +40,14 @@ describe('IdempotencyMiddleware', () => {
 
   it('should throw error if Idempotency-Key is missing', async () => {
     req.header.mockReturnValue(null);
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next.mock.calls[0][0].message).toBe('Idempotency-Key header is required.');
   });
 
   it('should throw error if Idempotency-Key is too short', async () => {
     req.header.mockReturnValue('short');
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
   });
 
@@ -52,17 +56,16 @@ describe('IdempotencyMiddleware', () => {
     req.header.mockReturnValue(key);
 
     // Calculate actual hash of { foo: 'bar' }
-    const { createHash } = require('crypto');
     const hash = createHash('sha256').update(JSON.stringify({ foo: 'bar' })).digest('hex');
 
     MockedIdempotencyRepo.findKey.mockResolvedValue({
-        status: IdempotencyStatus.COMPLETED,
-        requestHash: hash,
-        responseStatusCode: 201,
-        responseBody: { ok: true },
-      } as any);
+      status: IdempotencyStatus.COMPLETED,
+      requestHash: hash,
+      responseStatusCode: 201,
+      responseBody: { ok: true },
+    } as any);
 
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({ ok: true });
@@ -75,7 +78,7 @@ describe('IdempotencyMiddleware', () => {
       status: IdempotencyStatus.IN_PROGRESS,
     } as any);
 
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
 
     expect(next).toHaveBeenCalledWith(expect.any(AppError));
     expect(next.mock.calls[0][0].statusCode).toBe(httpStatus.CONFLICT);
@@ -86,7 +89,7 @@ describe('IdempotencyMiddleware', () => {
     MockedIdempotencyRepo.findKey.mockResolvedValue(null);
     MockedIdempotencyRepo.createKey.mockResolvedValue({} as any);
 
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
 
     expect(MockedIdempotencyRepo.createKey).toHaveBeenCalled();
     expect(next).toHaveBeenCalled();
@@ -98,19 +101,19 @@ describe('IdempotencyMiddleware', () => {
 
     let finishCallback: any;
     res.on.mockImplementation((event: string, cb: any) => {
-        if (event === 'finish') finishCallback = cb;
+      if (event === 'finish') finishCallback = cb;
     });
 
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
 
     res.json({ success: true });
     res.statusCode = 200;
     await finishCallback();
 
     expect(MockedIdempotencyRepo.updateKey).toHaveBeenCalledWith(
-        expect.any(String),
-        'a-very-long-idempotency-key',
-        expect.objectContaining({ status: IdempotencyStatus.COMPLETED, responseStatusCode: 200 })
+      expect.any(String),
+      'a-very-long-idempotency-key',
+      expect.objectContaining({ status: IdempotencyStatus.COMPLETED, responseStatusCode: 200 })
     );
   });
 
@@ -118,17 +121,16 @@ describe('IdempotencyMiddleware', () => {
     const key = 'a-very-long-idempotency-key';
     req.header.mockReturnValue(key);
 
-    const { createHash } = require('crypto');
     const hash = createHash('sha256').update(JSON.stringify({ foo: 'bar' })).digest('hex');
 
     MockedIdempotencyRepo.findKey.mockResolvedValue({
-        status: IdempotencyStatus.COMPLETED,
-        requestHash: hash,
-        responseStatusCode: 400,
-        responseBody: { error: 'bad' },
-      } as any);
+      status: IdempotencyStatus.COMPLETED,
+      requestHash: hash,
+      responseStatusCode: 400,
+      responseBody: { error: 'bad' },
+    } as any);
 
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ error: 'bad' });
@@ -139,11 +141,11 @@ describe('IdempotencyMiddleware', () => {
     req.header.mockReturnValue(key);
 
     MockedIdempotencyRepo.findKey.mockResolvedValue({
-        id: 'rec-1',
-        status: IdempotencyStatus.FAILED,
-      } as any);
+      id: 'rec-1',
+      status: IdempotencyStatus.FAILED,
+    } as any);
 
-    await idempotencyMiddleware(req, res, next);
+    await idempotencyMiddleware(req as Request, res as Response, next);
 
     expect(MockedIdempotencyRepo.deleteKey).toHaveBeenCalledWith('rec-1');
     expect(MockedIdempotencyRepo.createKey).toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { Worker } from 'bullmq';
+import { Worker, Job } from 'bullmq';
 import { AnalyticsRepo } from '../../../../src/modules/analytics/analytics.repo';
 
 jest.mock('../../../../src/modules/analytics/analytics.repo');
@@ -7,13 +7,15 @@ jest.mock('bullmq');
 
 const MockedAnalyticsRepo = AnalyticsRepo as jest.Mocked<typeof AnalyticsRepo>;
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 describe('AnalyticsWorker', () => {
   let handler: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.isolateModules(() => {
-        require('../../../../src/jobs/workers/analytics.worker');
+      require('../../../../src/jobs/workers/analytics.worker');
     });
     handler = (Worker as jest.MockedClass<typeof Worker>).mock.calls[0][1];
   });
@@ -25,7 +27,7 @@ describe('AnalyticsWorker', () => {
     };
 
     MockedAnalyticsRepo.syncAllStatsForBooking.mockResolvedValue({} as any);
-    await handler(job);
+    await handler(job as Job);
     expect(MockedAnalyticsRepo.syncAllStatsForBooking).toHaveBeenCalledWith('res-1');
   });
 
@@ -36,7 +38,7 @@ describe('AnalyticsWorker', () => {
     };
 
     MockedAnalyticsRepo.syncAllStatsForPayment.mockResolvedValue({} as any);
-    await handler(job);
+    await handler(job as Job);
     expect(MockedAnalyticsRepo.syncAllStatsForPayment).toHaveBeenCalledWith('pay-1');
   });
 
@@ -47,7 +49,7 @@ describe('AnalyticsWorker', () => {
     };
 
     MockedAnalyticsRepo.syncAllStatsForReview.mockResolvedValue({} as any);
-    await handler(job);
+    await handler(job as Job);
     expect(MockedAnalyticsRepo.syncAllStatsForReview).toHaveBeenCalledWith('rev-1');
   });
 
@@ -58,6 +60,6 @@ describe('AnalyticsWorker', () => {
     };
 
     MockedAnalyticsRepo.syncAllStatsForBooking.mockRejectedValue(new Error('Sync fail'));
-    await expect(handler(job)).rejects.toThrow('Sync fail');
+    await expect(handler(job as Job)).rejects.toThrow('Sync fail');
   });
 });
