@@ -9,7 +9,7 @@
 - **p95 Latency:** 45ms
 - **Throughput:** ~45 requests/second (simulated)
 
-**Outcome:** The system maintains low latency for read-heavy availability queries. The `resolveSalonBySlug` middleware efficiently caches or retrieves salon metadata.
+**Outcome:** The system maintains low latency for read-heavy availability queries. The `resolveGamingCenterBySlug` middleware efficiently caches or retrieves salon metadata.
 
 ## 2. Reservation Concurrency & Idempotency
 **Scenario:** 10 simultaneous requests to create the exact same reservation using the same `Idempotency-Key`.
