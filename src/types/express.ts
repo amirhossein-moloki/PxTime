@@ -21,9 +21,7 @@ declare global {
       tenant?: {
         gamingCenterId: string;
         gamingCenterSlug?: string;
-        gamingCenterSlug?: string
       };
-      gamingCenterSlug?: string;
       gamingCenterSlug?: string;
     }
 
@@ -52,7 +50,6 @@ export interface AppRequest extends Request {
   };
   tenant: {
     gamingCenterId: string;
-    gamingCenterSlug?: string;
     gamingCenterSlug?: string;
   };
   gamingCenterId?: string;
