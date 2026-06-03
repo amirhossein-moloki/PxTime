@@ -1,35 +1,134 @@
-# Playenest
+# Playenest | پلتفرم مدیریت و رزرو گیم‌نت
 
-Playenest is a specialized Gamenet Reservation & Management system. It is an Express + TypeScript API backed by PostgreSQL and Prisma. The API is mounted under `/api/v1` and is organized by feature modules (auth, gaming centers, stations, staff, shifts, availability, reservations, payments, CMS, public, webhooks, wallet).
+Playenest is a specialized Gamenet Management & Reservation system. It provides a robust API for managing gaming centers, stations (PC, Console, VR), staff shifts, and online/walk-in reservations.
 
-## Project Overview
+[![Node.js Version](https://img.shields.io/badge/node-18.x-blue.svg)](https://nodejs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-5.x-teal.svg)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 
-Playenest provides a comprehensive solution for gaming centers to manage their stations (PC, Console, VR), handle online and walk-in reservations, manage staff shifts, and provide a public site for customers to book sessions.
+---
 
-## Documentation
+## 🚀 Key Features | ویژگی‌های کلیدی
 
-The authoritative documentation lives in `docs/` and is updated for the Gamenet system:
+- **Gaming Center Management**: Handle multiple centers, each with its own settings, pricing, and rules.
+- **Smart Station Control**: Manage PCs, Consoles (PS5, Xbox), and VR stations with VIP/Normal tiers.
+- **Reservation Engine**: Real-time availability, preventing overlaps, and support for Online, Walk-in, and Phone bookings.
+- **Staff & Shift Management**: Role-based access control (RBAC) and scheduling for staff members.
+- **Financials & Payments**: Integrated with Zarinpal for online payments, wallet system, and commission tracking.
+- **CMS & SEO**: Built-in site builder to generate public-facing pages for each gaming center.
+- **Analytics**: Detailed reporting on revenue, occupancy, and staff performance.
 
-- `docs/README.md` — documentation map
-- `docs/architecture.md` — system structure and project map
-- `docs/database.md` — Prisma models, enums, and relationships (GamingCenter, Station, etc.)
-- `docs/api.md` — route-by-route API reference for Playenest
-- `docs/API_GUIDE_FA.md` — راهنمای فارسی API (Persian API Guide for Playenest)
-- `docs/auth.md` — OTP/session auth flow for Users and Customers
-- `docs/cms-seo.md` — CMS and SEO behavior for Gaming Center pages
-- `docs/payments-commission-webhooks.md` — payment flow, commission data model, webhooks
-- `docs/onboarding.md` — local setup and environment variables
+---
 
-## Key Features
+## 🛠 Tech Stack | تکنولوژی‌های مورد استفاده
 
-- **Gaming Center Management**: Manage multiple gaming centers with their own settings, stations, and staff.
-- **Station Management**: Detailed control over PCs, Consoles (PlayStation, Xbox), and VR stations.
-- **Smart Reservation Engine**: Prevents overlaps and manages session statuses (Active, Paused, Completed).
-- **Staff Management**: Role-based access (Manager, Supervisor, Staff) and shift scheduling.
-- **Wallet & Membership**: Integrated wallet for customers and membership tiers.
-- **CMS & SEO**: Build public pages for gaming centers with SEO optimization.
-- **Payments**: Integrated with Zarinpal for online payments.
+- **Backend**: Node.js, Express, TypeScript
+- **Database**: PostgreSQL (ORM: Prisma)
+- **Caching & Queues**: Redis, BullMQ
+- **Validation**: Zod
+- **Security**: Argon2, JWT, Helmet
+- **Logging**: Pino
+- **Testing**: Jest, Supertest, Playwright
 
-## Phase Updates
+---
 
-The project has transitioned from a GamingCenter system to a full-featured Gamenet management platform. All core modules have been refactored to support Gamenet-specific logic like hourly rates, VIP stations, and gaming sessions.
+## 🚦 Getting Started | راهنمای راه‌اندازی
+
+Follow these steps to get the project running on your local machine.
+
+### 1. Prerequisites
+- **Node.js** (v18 or higher)
+- **Docker & Docker Compose** (recommended for DB and Redis)
+
+### 2. Installation
+```bash
+# Clone the repository
+git clone https://github.com/your-repo/playenest.git
+cd playenest
+
+# Install dependencies
+npm install
+```
+
+### 3. Environment Setup
+Copy the example environment file and update it with your credentials:
+```bash
+cp .env.example .env
+```
+*(Make sure to update `DATABASE_URL` and `REDIS_URL` if they differ from the defaults).*
+
+### 4. Database & Infrastructure
+The easiest way to start the required services is using Docker:
+```bash
+docker compose up -d
+```
+
+Then, initialize the database schema and generate the Prisma client:
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
+
+### 5. Seeding Data (Optional)
+To populate the database with professional test data (Tabriz Gaming Centers dataset):
+```bash
+npm run db:seed
+```
+
+### 6. Running the Application
+```bash
+# Development mode
+npm run dev
+
+# Production build
+npm run build
+npm start
+```
+
+The API will be available at `http://localhost:3000/api/v1`.
+Swagger documentation is available at `http://localhost:3000/api-docs`.
+
+---
+
+## 🧪 Testing | تست‌ها
+
+We maintain a high standard of quality with multiple testing layers:
+
+```bash
+# Run all tests
+npm test
+
+# Run with coverage
+npm run test:cov
+
+# Run E2E tests only
+npm run test:e2e
+```
+
+---
+
+## 📚 Documentation | مستندات
+
+Detailed documentation is available in the `docs/` folder:
+- [Architecture Overview](docs/architecture.md)
+- [API Reference](docs/api.md)
+- [Database Schema](docs/database.md)
+- [Persian API Guide (راهنمای فارسی)](docs/API_GUIDE_FA.md)
+- [Docker Guide (راهنمای داکر)](docs/DOCKER_GUIDE_FA.md)
+
+---
+
+## 🇮🇷 راهنمای سریع (Persian Summary)
+
+پروژه **Playenest** یک سیستم جامع مدیریت گیم‌نت است که شامل مدیریت سیستم رزرو، مدیریت ایستگاه‌ها (PC/Console)، مدیریت شیفت کارکنان و درگاه پرداخت است.
+
+**نحوه اجرا:**
+۱. نصب پکیج‌ها: `npm install`
+۲. تنظیم فایل `.env`: `cp .env.example .env`
+۳. اجرای دیتابیس و ردیس: `docker compose up -d`
+۴. بروزرسانی دیتابیس: `npx prisma migrate dev`
+۵. اجرای پروژه در حالت توسعه: `npm run dev`
+
+---
+*Built with ❤️ for the Gaming Community.*
