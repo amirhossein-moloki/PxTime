@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: Playenest API
-  description: API Documentation for Playenest Beauty GamingCenter Management System
+  description: API Documentation for Playenest Gamenet Management System
   version: 1.0.0
   contact:
     name: Playenest Support
@@ -131,7 +131,7 @@ components:
           type: string
         role:
           type: string
-          enum: [MANAGER, SUPERVISOR, STAFF]
+          enum: [MANAGER, SUPERVISOR, STAFF, TRAINEE]
         isActive:
           type: boolean
 
@@ -161,12 +161,13 @@ components:
           type: string
         name:
           type: string
-        durationMinutes:
-          type: integer
-        price:
-          type: integer
-        currency:
+        stationType:
           type: string
+          enum: [PC, PLAYSTATION, XBOX, SWITCH, VR]
+        isVip:
+          type: boolean
+        hourlyPrice:
+          type: number
         isActive:
           type: boolean
 
@@ -191,16 +192,14 @@ components:
           format: date-time
         status:
           type: string
-          enum: [PENDING, CONFIRMED, COMPLETED, CANCELED, NO_SHOW]
+          enum: [PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELED, NO_SHOW]
         paymentState:
           type: string
           enum: [UNPAID, PENDING, PARTIALLY_PAID, PAID, REFUNDED, OVERPAID, FAILED, CANCELED]
-        (stationSnapshot as any):
-          type: string
-        (stationSnapshot as any):
-          type: integer
-        (stationSnapshot as any):
-          type: string
+        totalHours:
+          type: number
+        totalPrice:
+          type: number
 
     Staff:
       type: object
@@ -282,8 +281,47 @@ components:
           type: boolean
         onlineBookingAutoConfirm:
           type: boolean
+        preventOverlaps:
+          type: boolean
 
-    Commission:
+    SiteSettings:
+      type: object
+      properties:
+        logoUrl:
+          type: string
+        faviconUrl:
+          type: string
+        defaultSeoTitle:
+          type: string
+        defaultSeoDescription:
+          type: string
+        robotsIndex:
+          type: string
+          enum: [INDEX, NOINDEX]
+        robotsFollow:
+          type: string
+          enum: [FOLLOW, NOFOLLOW]
+
+    CommissionPolicy:
+      type: object
+      properties:
+        id:
+          type: string
+        gamingCenterId:
+          type: string
+        type:
+          type: string
+          enum: [PERCENT, FIXED]
+        percentBps:
+          type: integer
+        fixedAmount:
+          type: integer
+        currency:
+          type: string
+        isActive:
+          type: boolean
+
+    Earning:
       type: object
       properties:
         id:
@@ -517,7 +555,7 @@ paths:
 
   /gamingCenters/{gamingCenterId}/commissions:
     get:
-      summary: List reservation commissions
+      summary: List reservation earnings (commissions)
       tags:
         - Commissions
       security:
@@ -543,15 +581,79 @@ paths:
             enum: [PENDING, ACCRUED, CHARGED, WAIVED, REFUNDED]
       responses:
         '200':
-          description: List of commissions
+          description: List of earnings
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Pagination'
 
+  /gamingCenters/{gamingCenterId}/commissions/policy:
+    get:
+      summary: Get commission policy
+      tags:
+        - Commissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Policy details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+    post:
+      summary: Upsert commission policy
+      tags:
+        - Commissions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - type
+              properties:
+                type:
+                  type: string
+                  enum: [PERCENT, FIXED]
+                percentBps:
+                  type: integer
+                fixedAmount:
+                  type: integer
+                currency:
+                  type: string
+                applyToOnlineOnly:
+                  type: boolean
+                minimumFeeAmount:
+                  type: integer
+                isActive:
+                  type: boolean
+      responses:
+        '200':
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
   /gamingCenters/{gamingCenterId}/commissions/{earningId}/pay:
     post:
-      summary: Pay a commission (record payment)
+      summary: Record commission payment
       tags:
         - Commissions
       security:
@@ -594,8 +696,154 @@ paths:
                   type: string
                   format: date-time
       responses:
-        '201':
-          description: Commission payment recorded
+        '200':
+          description: Payment recorded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /gamingCenters/{gamingCenterId}/audit-logs:
+    get:
+      summary: List audit logs
+      tags:
+        - Audit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entity
+          in: query
+          schema:
+            type: string
+        - name: action
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Audit logs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pagination'
+
+  /gamingCenters/{gamingCenterId}/site-settings:
+    get:
+      summary: Get site settings
+      tags:
+        - CMS
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Site settings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+    patch:
+      summary: Update site settings
+      tags:
+        - CMS
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                logoUrl:
+                  type: string
+                faviconUrl:
+                  type: string
+                defaultSeoTitle:
+                  type: string
+                defaultSeoDescription:
+                  type: string
+                robotsIndex:
+                  type: string
+                  enum: [INDEX, NOINDEX]
+                robotsFollow:
+                  type: string
+                  enum: [FOLLOW, NOFOLLOW]
+      responses:
+        '200':
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /gamingCenters/{gamingCenterId}/ratings/{id}/status:
+    patch:
+      summary: Moderate a review (status update)
+      tags:
+        - Ratings
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [PUBLISHED, HIDDEN, DELETED]
+      responses:
+        '200':
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /public/gamingCenters/{gamingCenterSlug}:
+    get:
+      summary: Get public gaming center info
+      tags:
+        - Public
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Gaming center details
           content:
             application/json:
               schema:
@@ -605,7 +853,7 @@ paths:
     get:
       summary: Get a public page by slug
       tags:
-        - CMS
+        - Public
       parameters:
         - name: gamingCenterSlug
           in: path
@@ -620,6 +868,121 @@ paths:
       responses:
         '200':
           description: Page details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /public/gamingCenters/{gamingCenterSlug}/media:
+    get:
+      summary: Get public media
+      tags:
+        - Public
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Media list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /public/gamingCenters/{gamingCenterSlug}/links:
+    get:
+      summary: Get public social links
+      tags:
+        - Public
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Links list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /public/gamingCenters/{gamingCenterSlug}/addresses:
+    get:
+      summary: Get public addresses
+      tags:
+        - Public
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Address list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /public/gamingCenters/{gamingCenterSlug}/ratings:
+    get:
+      summary: List public ratings
+      tags:
+        - Public
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ratings list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /public/gamingCenters/{gamingCenterSlug}/reservations/{reservationId}/ratings:
+    post:
+      summary: Submit a review
+      tags:
+        - Public
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
+      responses:
+        '201':
+          description: Review submitted
           content:
             application/json:
               schema:
@@ -652,7 +1015,7 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [COVER, GALLERY, BEFORE_AFTER, LOGO]
+                  enum: [COVER, GALLERY, STATION, LOGO]
                 altText:
                   type: string
       responses:
@@ -732,6 +1095,35 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
+  /public/gamingCenters/{gamingCenterSlug}/availability/slots:
+    get:
+      summary: Get available slots
+      tags:
+        - Availability
+      parameters:
+        - name: gamingCenterSlug
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: date
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: stationId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Available slots
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
   /public/gamingCenters/{gamingCenterSlug}/reservations:
     post:
       summary: Create an online reservation
@@ -756,7 +1148,6 @@ paths:
               type: object
               required:
                 - stationId
-                - staffId
                 - startTime
                 - customer
               properties:
@@ -788,26 +1179,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
-        '400':
-          description: Bad Request (e.g. Reservation in the past)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '403':
-          description: Forbidden (e.g. Online reservation disabled)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          description: Conflict (e.g. Slot not available)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /gamingCenters/{gamingCenterId}/reservations:
     get:
@@ -834,7 +1205,7 @@ paths:
           in: query
           schema:
             type: string
-            enum: [PENDING, CONFIRMED, COMPLETED, CANCELED, NO_SHOW]
+            enum: [PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELED, NO_SHOW]
       responses:
         '200':
           description: List of reservations
@@ -842,8 +1213,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Pagination'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
     post:
       summary: Create a reservation (Panel)
       tags:
@@ -864,7 +1233,6 @@ paths:
               type: object
               required:
                 - stationId
-                - staffId
                 - startTime
                 - customer
               properties:
@@ -894,18 +1262,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
-        '400':
-          $ref: '#/components/responses/ValidationError'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          description: Conflict (e.g. Slot not available)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
   /gamingCenters/{gamingCenterId}/reservations/{reservationId}:
     get:
@@ -950,6 +1306,7 @@ paths:
           schema:
             type: string
       requestBody:
+        required: true
         content:
           application/json:
             schema:
@@ -972,11 +1329,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
-  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/confirm:
+  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/payments/init:
     post:
-      summary: Confirm a reservation
+      summary: Initiate payment for reservation
       tags:
-        - Bookings
+        - Payments
       security:
         - bearerAuth: []
       parameters:
@@ -985,6 +1342,62 @@ paths:
           required: true
           schema:
             type: string
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: idempotency-key
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Payment initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /customer/me:
+    get:
+      summary: Get current customer info
+      tags:
+        - Customer Panel
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Customer info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /customer/reservations:
+    get:
+      summary: List my reservations
+      tags:
+        - Customer Panel
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of reservations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pagination'
+
+  /customer/reservations/{reservationId}:
+    get:
+      summary: Get reservation details
+      tags:
+        - Customer Panel
+      security:
+        - bearerAuth: []
+      parameters:
         - name: reservationId
           in: path
           required: true
@@ -992,48 +1405,25 @@ paths:
             type: string
       responses:
         '200':
-          description: Reservation confirmed
+          description: Reservation details
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          description: Conflict (e.g. Invalid state transition)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
-  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/cancel:
+  /customer/reservations/{reservationId}/cancel:
     post:
-      summary: Cancel a reservation
+      summary: Cancel my reservation
       tags:
-        - Bookings
+        - Customer Panel
       security:
         - bearerAuth: []
       parameters:
-        - name: gamingCenterId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: reservationId
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                reason:
-                  type: string
       responses:
         '200':
           description: Reservation canceled
@@ -1041,64 +1431,38 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Success'
-        '401':
-          $ref: '#/components/responses/UnauthorizedError'
-        '404':
-          $ref: '#/components/responses/NotFoundError'
-        '409':
-          description: Conflict (e.g. Invalid state transition)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
 
-  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/complete:
+  /customer/reservations/{reservationId}/ratings:
     post:
-      summary: Complete a reservation
+      summary: Submit a review (customer panel)
       tags:
-        - Bookings
+        - Customer Panel
       security:
         - bearerAuth: []
       parameters:
-        - name: gamingCenterId
-          in: path
-          required: true
-          schema:
-            type: string
         - name: reservationId
           in: path
           required: true
           schema:
             type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - rating
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                comment:
+                  type: string
       responses:
-        '200':
-          description: Reservation completed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-
-  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/no-show:
-    post:
-      summary: Mark reservation as no-show
-      tags:
-        - Bookings
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: gamingCenterId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: reservationId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Marked as no-show
+        '201':
+          description: Review submitted
           content:
             application/json:
               schema:
@@ -1151,7 +1515,7 @@ paths:
                   type: string
                 role:
                   type: string
-                  enum: [MANAGER, SUPERVISOR, STAFF]
+                  enum: [MANAGER, SUPERVISOR, STAFF, TRAINEE]
                 isPublic:
                   type: boolean
                 publicName:
@@ -1168,81 +1532,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
-  /gamingCenters/{gamingCenterId}/staff/{userId}/staffShifts:
-    get:
-      summary: List staffShifts for a staff member
-      tags:
-        - Shifts
-      parameters:
-        - name: gamingCenterId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of staffShifts
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-    post:
-      summary: Upsert staffShifts for a staff member
-      tags:
-        - Shifts
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: gamingCenterId
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: object
-                required:
-                  - dayOfWeek
-                  - startTime
-                  - endTime
-                  - isActive
-                properties:
-                  dayOfWeek:
-                    type: integer
-                  startTime:
-                    type: string
-                  endTime:
-                    type: string
-                  isActive:
-                    type: boolean
-      responses:
-        '200':
-          description: Shifts updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-
   /gamingCenters/{gamingCenterId}/stations:
     get:
       summary: List stations for a gamingCenter
       tags:
-        - Services
+        - Stations
       parameters:
         - name: gamingCenterId
           in: path
@@ -1259,7 +1553,7 @@ paths:
     post:
       summary: Create a new station
       tags:
-        - Services
+        - Stations
       security:
         - bearerAuth: []
       parameters:
@@ -1276,42 +1570,31 @@ paths:
               type: object
               required:
                 - name
-                - durationMinutes
-                - price
-                - currency
+                - stationType
+                - hourlyPrice
               properties:
                 name:
                   type: string
-                durationMinutes:
-                  type: integer
-                price:
-                  type: integer
-                currency:
+                stationType:
                   type: string
+                  enum: [PC, PLAYSTATION, XBOX, SWITCH, VR]
+                hourlyPrice:
+                  type: number
+                minRentHours:
+                  type: integer
+                maxRentHours:
+                  type: integer
+                defaultDurationHours:
+                  type: integer
+                incrementMinutes:
+                  type: integer
+                isVip:
+                  type: boolean
                 isActive:
                   type: boolean
       responses:
         '201':
           description: GameStation created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-
-  /public/gamingCenters/{gamingCenterSlug}/stations:
-    get:
-      summary: List public stations for a gamingCenter
-      tags:
-        - Services
-      parameters:
-        - name: gamingCenterSlug
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of public stations
           content:
             application/json:
               schema:
@@ -1352,6 +1635,10 @@ paths:
                   type: string
                 ownerId:
                   type: string
+                games:
+                  type: array
+                  items:
+                    type: string
       responses:
         '201':
           description: GamingCenter created
@@ -1360,78 +1647,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
-  /gamingCenters/{id}:
-    get:
-      summary: Get gamingCenter by ID
-      tags:
-        - GamingCenters
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: GamingCenter details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-    patch:
-      summary: Update gamingCenter
-      tags:
-        - GamingCenters
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                slug:
-                  type: string
-                isActive:
-                  type: boolean
-      responses:
-        '200':
-          description: GamingCenter updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-    delete:
-      summary: Delete gamingCenter
-      tags:
-        - GamingCenters
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: GamingCenter deleted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
-
   /auth/user/otp/request:
     post:
-      summary: Request OTP for User
+      summary: Request OTP
       tags:
         - Auth
       requestBody:
@@ -1445,7 +1663,6 @@ paths:
               properties:
                 phone:
                   type: string
-                  example: "09123456789"
       responses:
         '200':
           description: OTP sent
@@ -1456,7 +1673,7 @@ paths:
 
   /auth/user/otp/verify:
     post:
-      summary: Verify OTP and get Token
+      summary: Verify OTP
       tags:
         - Auth
       requestBody:
@@ -1471,10 +1688,8 @@ paths:
               properties:
                 phone:
                   type: string
-                  example: "09123456789"
                 code:
                   type: string
-                  example: "123456"
       responses:
         '200':
           description: Verified
@@ -1482,111 +1697,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
-        '401':
-          description: Invalid or expired OTP
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
-  /auth/login:
-    post:
-      summary: Classic Login (Email/Password)
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - phone
-                - actorType
-              properties:
-                phone:
-                  type: string
-                password:
-                  type: string
-                actorType:
-                  type: string
-                  enum: [USER, SYSTEM_ADMIN]
-                gamingCenterId:
-                  type: string
-      responses:
-        '200':
-          description: Logged in
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-
-  /auth/user/login/otp:
-    post:
-      summary: Login with OTP
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - phone
-                - gamingCenterId
-              properties:
-                phone:
-                  type: string
-                  example: "09123456789"
-                gamingCenterId:
-                  type: string
-      responses:
-        '200':
-          description: Logged in
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-
-  /auth/refresh:
-    post:
-      summary: Refresh Token
-      tags:
-        - Auth
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required:
-                - refreshToken
-              properties:
-                refreshToken:
-                  type: string
-      responses:
-        '200':
-          description: Token refreshed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-
-  /auth/logout:
-    post:
-      summary: Logout
-      tags:
-        - Auth
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Logged out
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'
 
   /auth/me:
     get:
