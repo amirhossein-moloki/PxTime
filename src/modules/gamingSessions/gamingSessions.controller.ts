@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Response } from 'express';
 import { AppRequest } from '../../types/express';
 import { GamingSessionsService } from './gamingSessions.station';
 import { asyncHandler } from '../../common/middleware/asyncHandler';
