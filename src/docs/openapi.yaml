@@ -169,6 +169,14 @@ components:
           type: boolean
         hourlyPrice:
           type: number
+        minRentHours:
+          type: integer
+        maxRentHours:
+          type: integer
+        defaultDurationHours:
+          type: integer
+        incrementMinutes:
+          type: integer
         isActive:
           type: boolean
 
@@ -201,6 +209,15 @@ components:
           type: number
         totalPrice:
           type: number
+        stationSnapshot:
+          type: object
+          properties:
+            name:
+              type: string
+            hourlyPrice:
+              type: number
+            stationType:
+              type: string
 
     Staff:
       type: object
@@ -1096,6 +1113,45 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
+  /gamingCenters/{gamingCenterId}/customers/{customerId}:
+    patch:
+      summary: Update customer profile
+      tags:
+        - Customers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                note:
+                  type: string
+                fullName:
+                  type: string
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
   /public/gamingCenters/{gamingCenterSlug}/availability/slots:
     get:
       summary: Get available slots
@@ -1325,6 +1381,66 @@ paths:
       responses:
         '200':
           description: Reservation updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/sessions/start:
+    post:
+      summary: Start a gaming session for a reservation
+      tags:
+        - GamingSessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                stationId:
+                  type: string
+      responses:
+        '201':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /gamingCenters/{gamingCenterId}/reservations/{reservationId}/sessions/stop:
+    post:
+      summary: Stop a gaming session for a reservation
+      tags:
+        - GamingSessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: gamingCenterId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: reservationId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session stopped
           content:
             application/json:
               schema:
@@ -1648,9 +1764,24 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
-  /auth/user/otp/request:
+  /auth/me:
+    get:
+      summary: Get current user info
+      tags:
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Success'
+
+  /auth/customer/otp/request:
     post:
-      summary: Request OTP
+      summary: Request OTP (Customer)
       tags:
         - Auth
       requestBody:
@@ -1672,9 +1803,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Success'
 
-  /auth/user/otp/verify:
+  /auth/customer/otp/verify:
     post:
-      summary: Verify OTP
+      summary: Verify OTP (Customer)
       tags:
         - Auth
       requestBody:
@@ -1698,18 +1829,3 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AuthResponse'
-
-  /auth/me:
-    get:
-      summary: Get current user info
-      tags:
-        - Auth
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: User info
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Success'

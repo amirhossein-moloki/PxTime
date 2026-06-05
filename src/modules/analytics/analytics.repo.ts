@@ -36,7 +36,7 @@ export const AnalyticsRepo = {
     });
   },
 
-  async getServicePerformanceStats(gamingCenterId: string, startDate: Date, endDate: Date) {
+  async getStationPerformanceStats(gamingCenterId: string, startDate: Date, endDate: Date) {
     return prisma.stationAnalytics.groupBy({
       by: ['stationId'],
       where: {
@@ -80,7 +80,7 @@ export const AnalyticsRepo = {
     });
   },
 
-  async getServiceDetails(gamingCenterId: string) {
+  async getStationDetails(gamingCenterId: string) {
     return prisma.gameStation.findMany({
       where: { gamingCenterId },
       select: { id: true, name: true },
@@ -208,7 +208,7 @@ export const AnalyticsRepo = {
     });
   },
 
-  async syncServiceStats(gamingCenterId: string, stationId: string, date: Date) {
+  async syncStationStats(gamingCenterId: string, stationId: string, date: Date) {
     const settings = await prisma.settings.findUnique({ where: { gamingCenterId } });
     const timeZone = settings?.timeZone || 'UTC';
     const dateStr = formatInTimeZone(date, timeZone, 'yyyy-MM-dd');
@@ -262,7 +262,7 @@ export const AnalyticsRepo = {
     await Promise.all([
       this.syncGamingCenterStats(gamingCenterId, date),
       this.syncStaffStats(gamingCenterId, staffId, date),
-      this.syncServiceStats(gamingCenterId, stationId, date),
+      this.syncStationStats(gamingCenterId, stationId, date),
     ]);
   },
 

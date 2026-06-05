@@ -1,7 +1,7 @@
 import { prisma } from '../../config/prisma';
-import { CreateServiceInput, UpdateServiceInput } from './stations.types';
+import { CreateStationInput, UpdateStationInput } from './stations.types';
 import { Prisma } from '@prisma/client';
-import { ListServicesQuery } from './stations.validators';
+import { ListStationsQuery } from './stations.validators';
 import { getPaginationParams, formatPaginatedResult } from '../../common/utils/pagination';
 
 /**
@@ -10,7 +10,7 @@ import { getPaginationParams, formatPaginatedResult } from '../../common/utils/p
  * @param data - The data for the new station.
  * @returns The newly created station.
  */
-export async function createStation(gamingCenterId: string, data: CreateServiceInput) {
+export async function createStation(gamingCenterId: string, data: CreateStationInput) {
   const createInput: Prisma.GameStationUncheckedCreateInput = {
     ...(data as any), // eslint-disable-line @typescript-eslint/no-explicit-any
     gamingCenterId,
@@ -38,7 +38,7 @@ export async function findStationById(stationId: string, gamingCenterId: string)
  * @param options - Optional filtering criteria (e.g., isActive).
  * @returns A list of stations.
  */
-export async function findStationsByGamingCenterId(gamingCenterId: string, query: ListServicesQuery) {
+export async function findStationsByGamingCenterId(gamingCenterId: string, query: ListStationsQuery) {
   const {
     page,
     limit,
@@ -100,7 +100,7 @@ export async function findStationsByGamingCenterId(gamingCenterId: string, query
  * @param data - The data to update the station with.
  * @returns The updated station.
  */
-export async function updateStation(stationId: string, gamingCenterId: string, data: UpdateServiceInput) {
+export async function updateStation(stationId: string, gamingCenterId: string, data: UpdateStationInput) {
   // Use updateMany to ensure we are only updating a station belonging to the correct gamingCenter.
   await prisma.gameStation.updateMany({
     where: { id: stationId, gamingCenterId },

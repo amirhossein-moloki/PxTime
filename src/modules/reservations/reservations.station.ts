@@ -349,18 +349,18 @@ export const reservationsService = {
         const startAtChanged = !!data.startTime;
         const hasTimeChange = serviceChanged || staffChanged || startAtChanged;
 
-        const effectiveServiceId = serviceChanged ? data.stationId! : reservation.stationId;
+        const effectiveStationId = serviceChanged ? data.stationId! : reservation.stationId;
         const effectiveStaffId = staffChanged ? data.staffId! : reservation.staffId;
 
         let effectiveStation = null;
         if (serviceChanged) {
-          effectiveStation = await ReservationsRepo.findStation(effectiveServiceId, gamingCenterId, true, tx);
+          effectiveStation = await ReservationsRepo.findStation(effectiveStationId, gamingCenterId, true, tx);
 
           if (!effectiveStation) {
             throw new AppError('GameStation not found or is not active.', httpStatus.NOT_FOUND);
           }
         } else if (hasTimeChange) {
-          effectiveStation = await ReservationsRepo.findStation(effectiveServiceId, gamingCenterId, undefined, tx);
+          effectiveStation = await ReservationsRepo.findStation(effectiveStationId, gamingCenterId, undefined, tx);
 
           if (!effectiveStation) {
             throw new AppError('GameStation not found.', httpStatus.NOT_FOUND);
@@ -368,7 +368,7 @@ export const reservationsService = {
         }
 
         if ((staffChanged || serviceChanged) && effectiveStaffId) {
-          const staff = await ReservationsRepo.findStaff(effectiveStaffId!, gamingCenterId, effectiveServiceId, undefined, tx);
+          const staff = await ReservationsRepo.findStaff(effectiveStaffId!, gamingCenterId, effectiveStationId, undefined, tx);
 
           if (!staff || !staff.id) {
             throw new AppError(
@@ -381,7 +381,7 @@ export const reservationsService = {
         const updateData: Prisma.ReservationUncheckedUpdateInput = {};
 
         if (serviceChanged && effectiveStation) {
-          updateData.stationId = effectiveServiceId;
+          updateData.stationId = effectiveStationId;
           const durationHours = effectiveStation.defaultDurationHours;
           updateData.stationSnapshot = {
             name: effectiveStation.name,

@@ -19,9 +19,9 @@ const getStaffPerformance = asyncHandler(async (req: AppRequest, res: Response) 
   res.ok(result);
 });
 
-const getServicePerformance = asyncHandler(async (req: AppRequest, res: Response) => {
+const getStationPerformance = asyncHandler(async (req: AppRequest, res: Response) => {
   const { startDate, endDate } = req.query as unknown as AnalyticsQuery;
-  const result = await AnalyticsService.getServicePerformance(req.tenant.gamingCenterId, startDate, endDate);
+  const result = await AnalyticsService.getStationPerformance(req.tenant.gamingCenterId, startDate, endDate);
 
   res.ok(result);
 });
@@ -36,6 +36,6 @@ const getRevenueChart = asyncHandler(async (req: AppRequest, res: Response) => {
 export const AnalyticsController = {
   getSummary,
   getStaffPerformance,
-  getServicePerformance,
+  getStationPerformance,
   getRevenueChart,
 };
