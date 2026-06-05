@@ -76,8 +76,7 @@ export const confirmBooking = async (
 ) => {
   const reservation = await reservationsService.confirmBooking(
     req.params.reservationId,
-    req.tenant.gamingCenterId,
-    req.actor as { id: string; role: UserRole }
+    req.tenant.gamingCenterId
   );
   res.ok(reservation);
 };
@@ -101,6 +100,19 @@ export const completeBooking = async (
   res: Response
 ) => {
   const reservation = await reservationsService.completeBooking(
+    req.params.reservationId,
+    req.tenant.gamingCenterId,
+    req.actor as { id: string; role: UserRole; actorType: SessionActorType },
+    { ip: req.ip, userAgent: req.headers['user-agent'] }
+  );
+  res.ok(reservation);
+};
+
+export const startBooking = async (
+  req: AppRequest,
+  res: Response
+) => {
+  const reservation = await reservationsService.startBooking(
     req.params.reservationId,
     req.tenant.gamingCenterId,
     req.actor as { id: string; role: UserRole; actorType: SessionActorType },

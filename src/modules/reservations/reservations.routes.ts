@@ -75,7 +75,15 @@ router.post(
   asyncHandler<AppRequest>(bookingsController.cancelBooking)
 );
 
-// 7. Complete Reservation
+// 7. Start Reservation
+router.post(
+  '/:reservationId/start',
+  requireRole(M_R),
+  validate(idParamSchema('reservationId')),
+  asyncHandler<AppRequest>(bookingsController.startBooking)
+);
+
+// 8. Complete Reservation
 router.post(
   '/:reservationId/complete',
   requireRole(M_R),
@@ -83,7 +91,7 @@ router.post(
   asyncHandler<AppRequest>(bookingsController.completeBooking)
 );
 
-// 8. Mark as No-Show
+// 9. Mark as No-Show
 router.post(
   '/:reservationId/no-show',
   requireRole(M_R),

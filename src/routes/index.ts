@@ -5,8 +5,8 @@ import gamingCenterRouter from '../modules/gamingCenter/gamingCenter.routes';
 
 // Import the new station routers
 import {
-  privateServiceRouter,
-  publicServiceRouter,
+  privateStationRouter,
+  publicStationRouter,
 } from '../modules/stations/stations.routes';
 import staffRouter from '../modules/users/users.routes';
 import shiftsRouter from '../modules/staffShifts/staffShifts.routes';
@@ -45,10 +45,10 @@ router.use('/gamingCenters', gamingCenterRouter);
 
 // --- GameStation Module Routes ---
 // Mount the private router under the gamingCenter-specific path
-router.use('/gamingCenters/:gamingCenterId/stations', privateServiceRouter);
+router.use('/gamingCenters/:gamingCenterId/stations', privateStationRouter);
 
 // Mount the public router under the public gamingCenter path
-router.use('/public/gamingCenters/:gamingCenterSlug/stations', publicServiceRouter);
+router.use('/public/gamingCenters/:gamingCenterSlug/stations', publicStationRouter);
 
 // --- Staff Module Routes ---
 router.use('/gamingCenters/:gamingCenterId/staff', staffRouter);

@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import * as ServiceController from './stations.controller';
+import * as StationController from './stations.controller';
 import { validate } from '../../common/middleware/validate';
 import {
   createStationSchema,
@@ -18,48 +18,48 @@ import {
 import { asyncHandler } from '../../common/middleware/asyncHandler';
 
 // --- Private Router (to be mounted under /api/v1/gamingCenters/:gamingCenterId/stations) ---
-export const privateServiceRouter = Router({ mergeParams: true });
+export const privateStationRouter = Router({ mergeParams: true });
 
-privateServiceRouter.use(privateApiRateLimiter, authMiddleware, tenantGuard);
+privateStationRouter.use(privateApiRateLimiter, authMiddleware, tenantGuard);
 
-privateServiceRouter.post(
+privateStationRouter.post(
   '/',
   requireRole([UserRole.MANAGER]),
   validate(createStationSchema),
-  asyncHandler(ServiceController.createStation)
+  asyncHandler(StationController.createStation)
 );
 
-privateServiceRouter.get(
+privateStationRouter.get(
   '/',
   requireRole([UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.STAFF]),
-  asyncHandler(ServiceController.getServices)
+  asyncHandler(StationController.getStations)
 );
 
-privateServiceRouter.get(
+privateStationRouter.get(
   '/:stationId',
   requireRole([UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.STAFF]),
   validate(serviceIdParamSchema),
-  asyncHandler(ServiceController.getStationById)
+  asyncHandler(StationController.getStationById)
 );
 
-privateServiceRouter.patch(
+privateStationRouter.patch(
   '/:stationId',
   requireRole([UserRole.MANAGER]),
   validate(updateStationSchema),
-  asyncHandler(ServiceController.updateStation)
+  asyncHandler(StationController.updateStation)
 );
 
-privateServiceRouter.delete(
+privateStationRouter.delete(
   '/:stationId',
   requireRole([UserRole.MANAGER]),
   validate(serviceIdParamSchema),
-  asyncHandler(ServiceController.deleteService)
+  asyncHandler(StationController.deleteStation)
 );
 
 // --- Public Router (to be mounted under /api/v1/public/gamingCenters/:gamingCenterSlug/stations) ---
-export const publicServiceRouter = Router({ mergeParams: true });
+export const publicStationRouter = Router({ mergeParams: true });
 
-publicServiceRouter.get(
+publicStationRouter.get(
   '/',
   publicApiRateLimiter,
   resolveGamingCenterBySlug,
@@ -68,5 +68,5 @@ publicServiceRouter.get(
     req.query.isActive = 'true';
     next();
   },
-  asyncHandler(ServiceController.getServices)
+  asyncHandler(StationController.getStations)
 );
