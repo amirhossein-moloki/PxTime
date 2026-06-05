@@ -31,7 +31,7 @@ export async function createStation(
 /**
  * Handle request to get all stations for a gamingCenter.
  */
-export async function getServices(
+export async function getStations(
   req: RequestWithGamingCenter,
   res: Response,
   next: NextFunction
@@ -99,7 +99,7 @@ export async function updateStation(
 /**
  * Handle request to delete (deactivate) a station.
  */
-export async function deleteService(
+export async function deleteStation(
   req: Request<{ gamingCenterId: string; stationId: string }>,
   res: Response,
   next: NextFunction

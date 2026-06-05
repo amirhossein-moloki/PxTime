@@ -7,6 +7,7 @@ import { AuthRepository } from '../auth/auth.repository';
 import AppError from '../../common/errors/AppError';
 import httpStatus from 'http-status';
 import { getZonedStartAndEnd } from '../../common/utils/date';
+import { GamingSessionsService } from '../gamingSessions/gamingSessions.station';
 import { commissionsService } from '../commissions/commissions.station';
 import { WalletService } from '../wallet/wallet.station';
 import { auditService } from '../audit/audit.station';
@@ -493,10 +494,6 @@ export const reservationsService = {
   },
 
   async confirmBooking(reservationId: string, gamingCenterId: string, actor: { id: string, role: UserRole }) {
-    if (actor.role === UserRole.STAFF) {
-      throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
-    }
-
     const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (reservation.status !== ReservationStatus.PENDING) {
@@ -533,10 +530,6 @@ export const reservationsService = {
     data: CancelBookingInput,
     context?: { ip?: string; userAgent?: string }
   ) {
-    if (actor.role === UserRole.STAFF) {
-      throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
-    }
-
     const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (!([ReservationStatus.PENDING, ReservationStatus.CONFIRMED] as ReservationStatus[]).includes(reservation.status)) {
@@ -588,30 +581,73 @@ export const reservationsService = {
     return updatedBooking;
   },
 
+  async startBooking(
+    reservationId: string,
+    gamingCenterId: string,
+    actor: { id: string; role: UserRole; actorType: SessionActorType },
+    context?: { ip?: string; userAgent?: string }
+  ) {
+    return ReservationsRepo.transaction(async (tx) => {
+      const reservation = await ReservationsRepo.findReservationById(reservationId, gamingCenterId, tx);
+      if (!reservation) {
+        throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+      }
+
+      if (reservation.status !== ReservationStatus.CONFIRMED) {
+        throw new AppError('Invalid state transition: Only confirmed reservations can be started.', httpStatus.CONFLICT);
+      }
+
+      const updatedBooking = await ReservationsRepo.updateReservation(reservationId, gamingCenterId, {
+        status: ReservationStatus.IN_PROGRESS,
+      }, tx);
+
+      if (!updatedBooking) {
+        throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+      }
+
+      await GamingSessionsService.startSession(reservationId, reservation.stationId, tx);
+
+      await auditService.log(
+        gamingCenterId,
+        actor,
+        'BOOKING_START',
+        { name: 'Reservation', id: reservationId },
+        { old: reservation, new: updatedBooking },
+        context
+      );
+
+      return updatedBooking;
+    });
+  },
+
   async completeBooking(
     reservationId: string,
     gamingCenterId: string,
     actor: { id: string; role: UserRole; actorType: SessionActorType },
     context?: { ip?: string; userAgent?: string }
   ) {
-    if (actor.role === UserRole.STAFF) {
-      throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
-    }
-
     const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
-    if (reservation.status !== ReservationStatus.CONFIRMED) {
+    if (!([ReservationStatus.CONFIRMED, ReservationStatus.IN_PROGRESS] as ReservationStatus[]).includes(reservation.status)) {
       throw new AppError('Invalid state transition: Reservation cannot be completed.', httpStatus.CONFLICT);
     }
 
-    const updatedBooking = await ReservationsRepo.updateReservation(reservationId, gamingCenterId, {
-      status: ReservationStatus.COMPLETED,
-      completedAt: new Date(),
-    });
+    const updatedBooking = await ReservationsRepo.transaction(async (tx) => {
+      const updated = await ReservationsRepo.updateReservation(reservationId, gamingCenterId, {
+        status: ReservationStatus.COMPLETED,
+        completedAt: new Date(),
+      }, tx);
 
-    if (!updatedBooking) {
-      throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
-    }
+      if (!updated) {
+        throw new AppError('Reservation not found.', httpStatus.NOT_FOUND);
+      }
+
+      if (reservation.status === ReservationStatus.IN_PROGRESS) {
+        await GamingSessionsService.endSession(reservationId, tx);
+      }
+
+      return updated;
+    });
 
     await auditService.log(
       gamingCenterId,
@@ -638,10 +674,6 @@ export const reservationsService = {
     actor: { id: string; role: UserRole; actorType: SessionActorType },
     context?: { ip?: string; userAgent?: string }
   ) {
-    if (actor.role === UserRole.STAFF) {
-      throw new AppError('Forbidden.', httpStatus.FORBIDDEN);
-    }
-
     const reservation = await findAndValidateReservation(reservationId, gamingCenterId);
 
     if (reservation.status !== ReservationStatus.CONFIRMED) {
