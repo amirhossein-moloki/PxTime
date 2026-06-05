@@ -67,7 +67,7 @@ describe('ReservationsStationService', () => {
     const input = {
       stationId,
       staffId,
-      startTime: new Date(Date.now() + 3600000).toISOString(),
+      startTime: '2026-06-06T10:00:00Z',
       customer: { fullName: 'Jane Doe', phone: '09123456789' },
     };
 
