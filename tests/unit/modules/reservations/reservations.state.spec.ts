@@ -50,7 +50,7 @@ describe('Reservations State Machine', () => {
       MockedReservationsRepo.findReservationById.mockResolvedValue(reservation as any);
 
       await expect(reservationsService.startBooking(reservationId, gamingCenterId, actor))
-        .rejects.toThrow(new AppError('Invalid state transition: Only confirmed reservations can be started.', httpStatus.CONFLICT));
+        .rejects.toThrow('Invalid state transition from PENDING to IN_PROGRESS');
     });
   });
 
