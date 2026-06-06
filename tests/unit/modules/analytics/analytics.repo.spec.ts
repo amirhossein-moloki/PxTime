@@ -49,11 +49,11 @@ describe('AnalyticsRepo', () => {
     });
   });
 
-  describe('getServicePerformanceStats', () => {
+  describe('getStationPerformanceStats', () => {
     it('should return grouped station stats', async () => {
       const mockStats = [{ stationId: 's-1', _sum: { revenue: 500 } }];
       stationAnalyticsMock.groupBy.mockResolvedValue(mockStats);
-      const result = await AnalyticsRepo.getServicePerformanceStats(gamingCenterId, startDate, endDate);
+      const result = await AnalyticsRepo.getStationPerformanceStats(gamingCenterId, startDate, endDate);
       expect(result).toEqual(mockStats);
     });
   });
@@ -84,10 +84,10 @@ describe('AnalyticsRepo', () => {
     });
   });
 
-  describe('getServiceDetails', () => {
+  describe('getStationDetails', () => {
     it('should return stations', async () => {
       stationModelMock.findMany.mockResolvedValue([{ id: 's-1', name: 'PC 1' }]);
-      const result = await AnalyticsRepo.getServiceDetails(gamingCenterId);
+      const result = await AnalyticsRepo.getStationDetails(gamingCenterId);
       expect(result).toHaveLength(1);
     });
   });
@@ -124,13 +124,13 @@ describe('AnalyticsRepo', () => {
     });
   });
 
-  describe('syncServiceStats', () => {
+  describe('syncStationStats', () => {
     it('should sync and upsert station stats', async () => {
       settingsMock.findUnique.mockResolvedValue({ timeZone: 'UTC' });
       resMock.aggregate.mockResolvedValue({ _count: { _all: 0 }, _sum: { totalPrice: 0 } });
       stationAnalyticsMock.upsert.mockResolvedValue({});
 
-      await AnalyticsRepo.syncServiceStats(gamingCenterId, 's-1', new Date());
+      await AnalyticsRepo.syncStationStats(gamingCenterId, 's-1', new Date());
       expect(stationAnalyticsMock.upsert).toHaveBeenCalled();
     });
   });
@@ -140,7 +140,7 @@ describe('AnalyticsRepo', () => {
       resMock.findUnique.mockResolvedValue({ id: 'res-1', gamingCenterId, startTime: new Date(), staffId: 'u-1', stationId: 's-1' });
       jest.spyOn(AnalyticsRepo, 'syncGamingCenterStats').mockResolvedValue(undefined /* eslint-disable-line @typescript-eslint/no-explicit-any */ as any);
       jest.spyOn(AnalyticsRepo, 'syncStaffStats').mockResolvedValue(undefined /* eslint-disable-line @typescript-eslint/no-explicit-any */ as any);
-      jest.spyOn(AnalyticsRepo, 'syncServiceStats').mockResolvedValue(undefined /* eslint-disable-line @typescript-eslint/no-explicit-any */ as any);
+      jest.spyOn(AnalyticsRepo, 'syncStationStats').mockResolvedValue(undefined /* eslint-disable-line @typescript-eslint/no-explicit-any */ as any);
 
       await AnalyticsRepo.syncAllStatsForBooking('res-1');
       expect(AnalyticsRepo.syncGamingCenterStats).toHaveBeenCalled();

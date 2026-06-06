@@ -33,6 +33,7 @@ import { settingsRouter } from '../modules/settings/settings.routes';
 import { commissionsRoutes } from '../modules/commissions/commissions.routes';
 import auditRoutes from '../modules/audit/audit.routes';
 import { analyticsRoutes } from '../modules/analytics/analytics.routes';
+import { gamingSessionsRoutes } from '../modules/gamingSessions/gamingSessions.routes';
 import { resolveGamingCenterBySlug } from '../common/middleware/resolveGamingCenterBySlug';
 import { customerPanelRouter } from '../modules/customer-panel/customer-panel.routes';
 
@@ -92,6 +93,9 @@ router.use('/customer', customerPanelRouter);
 
 // --- Analytics Module Routes ---
 router.use('/gamingCenters/:gamingCenterId/analytics', analyticsRoutes);
+
+// --- Gaming Sessions Module Routes ---
+router.use('/gamingCenters/:gamingCenterId/reservations/:reservationId/sessions', gamingSessionsRoutes);
 
 // --- Payments Module Routes ---
 router.use('/gamingCenters/:gamingCenterId/reservations', paymentsRoutes); // This will be scoped within the reservation

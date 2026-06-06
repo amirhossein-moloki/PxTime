@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import * as stationLogic from './stations.station';
-import { CreateServiceInput, UpdateServiceInput } from './stations.types';
-import { listServicesSchema } from './stations.validators';
+import { CreateStationInput, UpdateStationInput } from './stations.types';
+import { listStationsSchema } from './stations.validators';
 import { GamingCenter } from '@prisma/client';
 import AppError from '../../common/errors/AppError';
 import httpStatus from 'http-status';
@@ -15,14 +15,14 @@ interface RequestWithGamingCenter extends Request {
  * Handle request to create a new station.
  */
 export async function createStation(
-  req: Request<{ gamingCenterId: string }, unknown, CreateServiceInput>,
+  req: Request<{ gamingCenterId: string }, unknown, CreateStationInput>,
   res: Response,
   next: NextFunction
 ) {
   try {
     const { gamingCenterId } = req.params;
-    const newService = await stationLogic.createStation(gamingCenterId, req.body);
-    res.created(newService);
+    const newStation = await stationLogic.createStation(gamingCenterId, req.body);
+    res.created(newStation);
   } catch (error) {
     next(error);
   }
@@ -44,7 +44,7 @@ export async function getStations(
       return next(new AppError('GamingCenter ID or slug is required.', httpStatus.BAD_REQUEST));
     }
 
-    const validatedQuery = listServicesSchema.parse(req.query);
+    const validatedQuery = listStationsSchema.parse(req.query);
 
     const stations = await stationLogic.getStationsForGamingCenter(
       targetGamingCenterId,
@@ -77,20 +77,20 @@ export async function getStationById(
  * Handle request to update a station.
  */
 export async function updateStation(
-  req: Request<{ gamingCenterId: string; stationId: string }, unknown, UpdateServiceInput>,
+  req: Request<{ gamingCenterId: string; stationId: string }, unknown, UpdateStationInput>,
   res: Response,
   next: NextFunction
 ) {
   try {
     const { gamingCenterId, stationId } = req.params;
-    const updatedService = await stationLogic.updateStation(
+    const updatedStation = await stationLogic.updateStation(
       stationId,
       gamingCenterId,
       req.body,
       (req as any).actor, // eslint-disable-line @typescript-eslint/no-explicit-any
       { ip: req.ip, userAgent: req.headers['user-agent'] }
     );
-    res.ok(updatedService);
+    res.ok(updatedStation);
   } catch (error) {
     next(error);
   }

@@ -3,7 +3,7 @@ import { GameStationType } from '@prisma/client';
 import { baseFilterSchema } from '../../common/validators/query.validators';
 
 // Base schema for common fields
-const serviceBaseSchema = {
+const stationBaseSchema = {
   name: z.string().min(1, 'Name is required'),
   stationType: z.nativeEnum(GameStationType).default(GameStationType.PC),
   hourlyPrice: z.number().min(0, 'Hourly price cannot be negative'),
@@ -18,29 +18,29 @@ const serviceBaseSchema = {
 // Schema for creating a new station
 export const createStationSchema = z.object({
   body: z.object({
-    ...serviceBaseSchema,
+    ...stationBaseSchema,
   }),
 });
 
 // Schema for updating an existing station
 export const updateStationSchema = z.object({
   body: z.object({
-    name: serviceBaseSchema.name.optional(),
+    name: stationBaseSchema.name.optional(),
     stationType: z.nativeEnum(GameStationType).optional(),
-    hourlyPrice: serviceBaseSchema.hourlyPrice.optional(),
-    minRentHours: serviceBaseSchema.minRentHours.optional(),
-    maxRentHours: serviceBaseSchema.maxRentHours.optional(),
-    defaultDurationHours: serviceBaseSchema.defaultDurationHours.optional(),
-    incrementMinutes: serviceBaseSchema.incrementMinutes.optional(),
-    isVip: serviceBaseSchema.isVip.optional(),
-    isActive: serviceBaseSchema.isActive.optional(),
+    hourlyPrice: stationBaseSchema.hourlyPrice.optional(),
+    minRentHours: stationBaseSchema.minRentHours.optional(),
+    maxRentHours: stationBaseSchema.maxRentHours.optional(),
+    defaultDurationHours: stationBaseSchema.defaultDurationHours.optional(),
+    incrementMinutes: stationBaseSchema.incrementMinutes.optional(),
+    isVip: stationBaseSchema.isVip.optional(),
+    isActive: stationBaseSchema.isActive.optional(),
   }),
   params: z.object({
     stationId: z.string().cuid('Invalid station ID format'),
   }),
 });
 
-export const listServicesSchema = baseFilterSchema.extend({
+export const listStationsSchema = baseFilterSchema.extend({
   minPrice: z.coerce.number().optional(),
   maxPrice: z.coerce.number().optional(),
   stationType: z.nativeEnum(GameStationType).optional(),
@@ -48,10 +48,10 @@ export const listServicesSchema = baseFilterSchema.extend({
   staffId: z.string().optional(),
 });
 
-export type ListServicesQuery = z.infer<typeof listServicesSchema>;
+export type ListStationsQuery = z.infer<typeof listStationsSchema>;
 
 // Schema for URL parameters that include a stationId
-export const serviceIdParamSchema = z.object({
+export const stationIdParamSchema = z.object({
   params: z.object({
     stationId: z.string().cuid('Invalid station ID format'),
   }),

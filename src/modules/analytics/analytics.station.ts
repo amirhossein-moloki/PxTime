@@ -58,10 +58,10 @@ export const AnalyticsService = {
     return performance;
   },
 
-  async getServicePerformance(gamingCenterId: string, startDate: Date, endDate: Date) {
+  async getStationPerformance(gamingCenterId: string, startDate: Date, endDate: Date) {
     const [serviceStats, servicesList] = await Promise.all([
-      AnalyticsRepo.getServicePerformanceStats(gamingCenterId, startDate, endDate),
-      AnalyticsRepo.getServiceDetails(gamingCenterId),
+      AnalyticsRepo.getStationPerformanceStats(gamingCenterId, startDate, endDate),
+      AnalyticsRepo.getStationDetails(gamingCenterId),
     ]);
 
     const performance = servicesList.map((station) => {

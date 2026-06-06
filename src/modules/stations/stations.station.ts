@@ -1,8 +1,8 @@
 import { SessionActorType } from '@prisma/client';
 import { auditService } from '../audit/audit.station';
 import * as StationRepo from './stations.repo';
-import { CreateServiceInput, UpdateServiceInput } from './stations.types';
-import { ListServicesQuery } from './stations.validators';
+import { CreateStationInput, UpdateStationInput } from './stations.types';
+import { ListStationsQuery } from './stations.validators';
 import AppError from '../../common/errors/AppError';
 import httpStatus from 'http-status';
 
@@ -12,7 +12,7 @@ import httpStatus from 'http-status';
  * @param data - The data for the new station.
  * @returns The newly created station.
  */
-export async function createStation(gamingCenterId: string, data: CreateServiceInput) {
+export async function createStation(gamingCenterId: string, data: CreateStationInput) {
   // In a real app, you might have more complex logic here,
   // e.g., checking for duplicate station names within the same gamingCenter.
   return StationRepo.createStation(gamingCenterId, data);
@@ -39,7 +39,7 @@ export async function getStationById(stationId: string, gamingCenterId: string) 
  * @param query - Filtering and pagination criteria.
  * @returns A list of stations.
  */
-export async function getStationsForGamingCenter(gamingCenterId: string, query: ListServicesQuery) {
+export async function getStationsForGamingCenter(gamingCenterId: string, query: ListStationsQuery) {
   return StationRepo.findStationsByGamingCenterId(gamingCenterId, query);
 }
 
@@ -54,36 +54,36 @@ export async function getStationsForGamingCenter(gamingCenterId: string, query: 
 export async function updateStation(
   stationId: string,
   gamingCenterId: string,
-  data: UpdateServiceInput,
+  data: UpdateStationInput,
   actor: { id: string; actorType: SessionActorType },
   context?: { ip?: string; userAgent?: string }
 ) {
   // First, ensure the station exists within this gamingCenter before updating.
-  const oldService = await getStationById(stationId, gamingCenterId);
-  const updatedService = await StationRepo.updateStation(stationId, gamingCenterId, data);
+  const oldStation = await getStationById(stationId, gamingCenterId);
+  const updatedStation = await StationRepo.updateStation(stationId, gamingCenterId, data);
 
   // Log if price changed
-  if (data.hourlyPrice !== undefined && data.hourlyPrice !== oldService.hourlyPrice) {
+  if (data.hourlyPrice !== undefined && data.hourlyPrice !== oldStation.hourlyPrice) {
     await auditService.log(
       gamingCenterId,
       actor,
-      'SERVICE_PRICE_UPDATE',
+      'STATION_PRICE_UPDATE',
       { name: 'GameStation', id: stationId },
-      { old: oldService, new: updatedService },
+      { old: oldStation, new: updatedStation },
       context
     );
   } else {
     await auditService.log(
       gamingCenterId,
       actor,
-      'SERVICE_UPDATE',
+      'STATION_UPDATE',
       { name: 'GameStation', id: stationId },
-      { old: oldService, new: updatedService },
+      { old: oldStation, new: updatedStation },
       context
     );
   }
 
-  return updatedService;
+  return updatedStation;
 }
 
 /**
@@ -100,17 +100,17 @@ export async function deactivateStation(
   context?: { ip?: string; userAgent?: string }
 ) {
   // First, ensure the station exists within this gamingCenter before deactivating.
-  const oldService = await getStationById(stationId, gamingCenterId);
-  const updatedService = await StationRepo.deactivateStation(stationId, gamingCenterId);
+  const oldStation = await getStationById(stationId, gamingCenterId);
+  const updatedStation = await StationRepo.deactivateStation(stationId, gamingCenterId);
 
   await auditService.log(
     gamingCenterId,
     actor,
-    'SERVICE_DEACTIVATE',
+    'STATION_DEACTIVATE',
     { name: 'GameStation', id: stationId },
-    { old: oldService, new: updatedService },
+    { old: oldStation, new: updatedStation },
     context
   );
 
-  return updatedService;
+  return updatedStation;
 }

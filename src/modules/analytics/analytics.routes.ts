@@ -16,7 +16,7 @@ router.use(requireRole([UserRole.MANAGER]));
 
 router.get('/summary', validate(AnalyticsQuerySchema), AnalyticsController.getSummary);
 router.get('/staff', validate(AnalyticsQuerySchema), AnalyticsController.getStaffPerformance);
-router.get('/stations', validate(AnalyticsQuerySchema), AnalyticsController.getServicePerformance);
+router.get('/stations', validate(AnalyticsQuerySchema), AnalyticsController.getStationPerformance);
 router.get('/revenue-chart', validate(AnalyticsQuerySchema), AnalyticsController.getRevenueChart);
 
 export const analyticsRoutes = router;

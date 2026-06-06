@@ -4,7 +4,7 @@ import { validate } from '../../common/middleware/validate';
 import {
   createStationSchema,
   updateStationSchema,
-  serviceIdParamSchema,
+  stationIdParamSchema,
 } from './stations.validators';
 import { authMiddleware } from '../../common/middleware/auth';
 import { requireRole } from '../../common/middleware/requireRole';
@@ -38,7 +38,7 @@ privateStationRouter.get(
 privateStationRouter.get(
   '/:stationId',
   requireRole([UserRole.MANAGER, UserRole.SUPERVISOR, UserRole.STAFF]),
-  validate(serviceIdParamSchema),
+  validate(stationIdParamSchema),
   asyncHandler(StationController.getStationById)
 );
 
@@ -52,7 +52,7 @@ privateStationRouter.patch(
 privateStationRouter.delete(
   '/:stationId',
   requireRole([UserRole.MANAGER]),
-  validate(serviceIdParamSchema),
+  validate(stationIdParamSchema),
   asyncHandler(StationController.deleteStation)
 );
 
