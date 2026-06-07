@@ -35,16 +35,16 @@ export async function getPublicPage(req: PublicPageRequest, res: Response) {
   );
 
   switch (result.type) {
-    case 'NOT_MODIFIED':
-      res.status(304).end();
-      break;
-    case 'REDIRECT':
-      res.redirect(301, result.url);
-      break;
-    case 'RENDER':
-      res.setHeader('ETag', result.eTag);
-      res.setHeader('Last-Modified', result.lastModified);
-      res.status(200).type('html').send(result.html);
-      break;
+  case 'NOT_MODIFIED':
+    res.status(304).end();
+    break;
+  case 'REDIRECT':
+    res.redirect(301, result.url);
+    break;
+  case 'RENDER':
+    res.setHeader('ETag', result.eTag);
+    res.setHeader('Last-Modified', result.lastModified);
+    res.status(200).type('html').send(result.html);
+    break;
   }
 }

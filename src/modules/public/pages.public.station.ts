@@ -42,7 +42,7 @@ export const PagesPublicStation = {
     const { sections, gamingCenter, ...pageData } = page;
     const html = renderPageDocument({
       page: pageData,
-      siteSettings: (gamingCenter as { siteSettings: any } | null)?.siteSettings ?? null,
+      siteSettings: (gamingCenter as { siteSettings: any } | null)?.siteSettings ?? null, // eslint-disable-line @typescript-eslint/no-explicit-any
       sections,
       pageId: page.id,
     });
@@ -96,7 +96,7 @@ export const PagesPublicStation = {
       const { sections, gamingCenter, ...pageData } = page;
       const html = renderPageDocument({
         page: pageData,
-        siteSettings: (gamingCenter as { siteSettings: any } | null)?.siteSettings ?? null,
+        siteSettings: (gamingCenter as { siteSettings: any } | null)?.siteSettings ?? null, // eslint-disable-line @typescript-eslint/no-explicit-any
         sections,
         pageId: page.id,
       });

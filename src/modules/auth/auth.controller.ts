@@ -48,7 +48,7 @@ export const refresh = async (req: Request, res: Response) => {
 
 export const logout = async (req: Request, res: Response) => {
   // Assuming session ID is available on req.actor after authentication middleware
-  const sessionId = (req.actor as any)?.sessionId;
+  const sessionId = req.actor?.sessionId;
   const result = await authService.logout(sessionId);
   res.ok(result);
 };

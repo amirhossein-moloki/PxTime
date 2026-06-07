@@ -34,10 +34,10 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
   req.actor = {
     id: user.id,
     actorId: payload.actorId,
-    role: (user as any).role,
-    gamingCenterId: (user as any).gamingCenterId,
+    role: 'role' in user ? (user as any).role : undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
+    gamingCenterId: 'gamingCenterId' in user ? (user as any).gamingCenterId : undefined, // eslint-disable-line @typescript-eslint/no-explicit-any
     actorType: payload.actorType,
-    sessionId: (payload as any).sessionId,
+    sessionId: payload.sessionId as string | undefined,
   };
   next();
 };
