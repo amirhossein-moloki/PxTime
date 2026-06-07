@@ -98,7 +98,7 @@ export const publicHandlers = [
   // POST /public/gamingCenters/{gamingCenterSlug}/reservation
   http.post('*/api/v1/public/gamingCenters/:slug/reservation', async ({ request }) => {
     await delay(Math.random() * 700 + 500);
-    const body = await request.json() as any;
+    const body = await request.json() as Record<string, unknown>;
     const newRes = {
       id: 'res-' + Math.random().toString(36).substr(2, 9),
       ...body,
@@ -106,7 +106,7 @@ export const publicHandlers = [
       paymentState: 'UNPAID',
       createdAt: new Date().toISOString()
     };
-    db.reservations.push(newRes as any);
+    db.reservations.push(newRes as unknown as typeof db.reservations[number]);
     return HttpResponse.json({
       success: true,
       data: newRes,

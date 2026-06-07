@@ -21,7 +21,7 @@ export const reservationHandlers = [
   http.post('/api/v1/gamingCenters/:gcId/reservation', async ({ params, request }) => {
     await delay(Math.random() * 700 + 500);
     const { gcId } = params;
-    const body = await request.json() as any;
+    const body = await request.json() as Record<string, unknown>;
     const station = db.stations.find(s => s.id === body.stationId);
     const newRes = {
       id: 'res-' + Math.random().toString(36).substr(2, 9),
@@ -32,7 +32,7 @@ export const reservationHandlers = [
       stationSnapshot: station ? { name: station.name, hourlyPrice: station.hourlyPrice, stationType: station.stationType } : {},
       createdAt: new Date().toISOString()
     };
-    db.reservations.push(newRes);
+    db.reservations.push(newRes as unknown as typeof db.reservations[number]);
     return HttpResponse.json({
       success: true,
       data: newRes,

@@ -18,7 +18,7 @@ export const gamingCenterHandlers = [
   // POST /gamingCenters
   http.post('/api/v1/gamingCenters', async ({ request }) => {
     await delay(Math.random() * 700 + 500);
-    const body = await request.json() as any;
+    const body = await request.json() as Record<string, unknown>;
     const newCenter = {
       id: 'gc-' + (db.gamingCenters.length + 1),
       ...body,
@@ -49,7 +49,7 @@ export const gamingCenterHandlers = [
   http.post('/api/v1/gamingCenters/:id/stations', async ({ params, request }) => {
     await delay(Math.random() * 700 + 500);
     const { id } = params;
-    const body = await request.json() as any;
+    const body = await request.json() as Record<string, unknown>;
     const newStation = {
       id: 'st-' + id + '-' + Math.random().toString(36).substr(2, 5),
       gamingCenterId: id as string,
@@ -80,7 +80,7 @@ export const gamingCenterHandlers = [
   http.post('/api/v1/gamingCenters/:id/staff', async ({ params, request }) => {
     await delay(Math.random() * 700 + 500);
     const { id } = params;
-    const body = await request.json() as any;
+    const body = await request.json() as Record<string, unknown>;
     const newStaff = {
       id: 'staff-' + id + '-' + Math.random().toString(36).substr(2, 5),
       gamingCenterId: id as string,
@@ -101,8 +101,8 @@ export const gamingCenterHandlers = [
     const { id } = params;
     const profiles = db.customerProfiles.filter(p => p.gamingCenterId === id);
     const customers = profiles.map(p => {
-       const acc = db.customerAccounts.find(a => a.id === p.customerAccountId);
-       return { ...acc, ...p };
+      const acc = db.customerAccounts.find(a => a.id === p.customerAccountId);
+      return { ...acc, ...p };
     });
     return HttpResponse.json({
       success: true,

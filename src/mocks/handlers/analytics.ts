@@ -72,8 +72,8 @@ export const cmsHandlers = [
   http.patch('/api/v1/gamingCenters/:id/site-settings', async ({ params, request }) => {
     await delay(Math.random() * 700 + 500);
     const { id } = params;
-    const body = await request.json() as any;
-    let settings = db.siteSettings.find(s => s.gamingCenterId === id);
+    const body = await request.json() as Record<string, unknown>;
+    const settings = db.siteSettings.find(s => s.gamingCenterId === id);
     if (settings) Object.assign(settings, body);
     return HttpResponse.json({
       success: true,
@@ -98,8 +98,8 @@ export const cmsHandlers = [
   http.put('/api/v1/gamingCenters/:id/settings', async ({ params, request }) => {
     await delay(Math.random() * 700 + 500);
     const { id } = params;
-    const body = await request.json() as any;
-    let settings = db.settings.find(s => s.gamingCenterId === id);
+    const body = await request.json() as Record<string, unknown>;
+    const settings = db.settings.find(s => s.gamingCenterId === id);
     if (settings) Object.assign(settings, body);
     return HttpResponse.json({
       success: true,
@@ -139,8 +139,8 @@ export const commissionHandlers = [
   http.post('/api/v1/gamingCenters/:id/commissions/policy', async ({ params, request }) => {
     await delay(Math.random() * 700 + 500);
     const { id } = params;
-    const body = await request.json() as any;
-    let policy = db.commissionPolicies.find(p => p.gamingCenterId === id);
+    const body = await request.json() as Record<string, unknown>;
+    const policy = db.commissionPolicies.find(p => p.gamingCenterId === id);
     if (policy) Object.assign(policy, body);
     return HttpResponse.json({
       success: true,

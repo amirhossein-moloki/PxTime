@@ -138,7 +138,7 @@ const createCustomers = () => {
 const gamingCenters = TABRIZ_CENTERS.map(c => ({
   ...c,
   isActive: true,
-  description: `بزرگترین و مجهزترین مرکز بازی در تبریز با سیستم‌های بروز و محیطی دوستانه.`,
+  description: 'بزرگترین و مجهزترین مرکز بازی در تبریز با سیستم‌های بروز و محیطی دوستانه.',
   pcCount: 8,
   consoleCount: 4,
   openingTime: c.openingTime || '10:00',

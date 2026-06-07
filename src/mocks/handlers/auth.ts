@@ -43,7 +43,7 @@ export const authHandlers = [
 
     const customer = db.customerAccounts.find(c => c.phone === phone);
     if (!customer) {
-       return HttpResponse.json({
+      return HttpResponse.json({
         success: false,
         error: { code: 'NOT_FOUND', message: 'Customer not found' }
       }, { status: 404 });
